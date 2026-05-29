@@ -6,21 +6,23 @@
 
 ## حالة الجاهزية
 
-**الحكم الحالي: Publishable Preview**
+**الحكم الحالي: Build-stable Web/PWA preparation with mobile install path**
 
-ليس Production Ready بعد لأن:
-- Auth إنتاجي (Supabase) غير مفعّل — demo mode فقط
-- RLS / Row-Level Security غير مطبّق على Supabase
-- Push Notifications حقيقية غير مفعّلة
-- Service Worker / Offline Support غير مفعّل
-- بعض البيانات admin_managed أو fallback/تقديرية وليست رسمية
-- الصفحات القانونية مسودة تشغيلية وليست مراجَعة قانونياً
+- `pnpm install` ✅
+- `pnpm run typecheck` ✅
+- `pnpm run build` ✅ بعد تثبيت إعدادات `PORT` و`BASE_PATH` الافتراضيّة في الواجهة
+- `manifest.json` وملفات الأيقونات محدثة للتحضير لإضافة التطبيق إلى الشاشة الرئيسية
+- بوابة الإدارة لا تعتمد على `localStorage` للفصل بين المستخدم/المالك
+- ويب/PWA قابل للإطلاق محلياً؛ النشر الخارجي يتطلب حساب نشر صالح (مثل Vercel) وتهيئة بيئة الإنتاج
 
 ---
 
 ## تشغيل المشروع
 
 ```bash
+# تثبيت التبعيات
+pnpm install --frozen-lockfile
+
 # API server (port 8080, proxied at /api)
 pnpm --filter @workspace/api-server run dev
 
@@ -33,6 +35,9 @@ pnpm --filter @workspace/mawaeedak run dev
 ```
 DATABASE_URL=postgres://...
 SESSION_SECRET=...
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJ...
+VITE_DATA_SOURCE_MODE=supabase   # أو api للاختبار المحلي
 ```
 
 انظر `.env.example` للمتغيرات الكاملة.
@@ -42,11 +47,19 @@ SESSION_SECRET=...
 ## أوامر البناء والتحقق
 
 ```bash
+# تثبيت متوافق مع pnpm monorepo
+pnpm install --frozen-lockfile
+
 # typecheck كامل (الأسرع للتحقق)
 pnpm run typecheck
 
 # build production
-PORT=5173 BASE_PATH=/ pnpm --filter @workspace/mawaeedak run build
+pnpm run build
+
+# build الواجهة فقط (لا يعتمد على متغيرات محلية)
+pnpm --filter @workspace/mawaeedak run build
+
+# build الخادم فقط
 pnpm --filter @workspace/api-server run build
 
 # codegen من OpenAPI
@@ -55,6 +68,36 @@ pnpm --filter @workspace/api-spec run codegen
 # push DB schema (dev only)
 pnpm --filter @workspace/db run push
 ```
+
+## Production Deployment (Vercel)
+
+- **Production URL**: `https://mawaeedak-api-server.vercel.app/`
+- **Deployment provider**: Vercel
+- **Vercel config**: إضافة `vercel.json` مع rewrite لـ SPA وتوجيه الأصول الثابتة.
+- **Build command**: `pnpm --filter @workspace/mawaeedak run build`
+- **Output directory**: `artifacts/mawaeedak/dist/public`
+- **Environment variable names only**: `VITE_DATA_SOURCE_MODE`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `PORT`, `BASE_PATH`
+- **Production smoke results**:
+  - `/` → 200 OK
+  - `/login` → pending redeploy after rewrite fix
+  - `/register` → pending redeploy after rewrite fix
+  - `/account` → pending redeploy after rewrite fix
+  - `/finance` → pending redeploy after rewrite fix
+  - `/story` → pending redeploy after rewrite fix
+  - `/notifications` → pending redeploy after rewrite fix
+  - `/admin` → pending redeploy after rewrite fix
+- **Remaining limitations**:
+  - التحقق النهائي من الإنتاج ينتظر إعادة نشر Vercel بعد اعتماد `vercel.json`.
+  - عند إعادة النشر، سيتم التحقق من `manifest.json` والأيقونات ومسارات SPA.
+
+## PWA / Mobile Install
+
+- `manifest.json` موجود ويستخدم `start_url: /` و`display: standalone`
+- الأيقونات الأساسية متوفرة ضمن `public/icons/`
+- **iPhone Safari**: فتح الصفحة → Share → Add to Home Screen → Install.
+- **Android Chrome**: ⋮ menu → Install app / Add to Home screen.
+- يمكن إضافة التطبيق إلى الشاشة الرئيسية من Safari على iPhone أو Chrome على Android
+- لا يتم الادعاء بالجاهزية native دون حساب App Store/Google Play وسلاسل توقيع وتخطيط الأيقونات/الشرائح
 
 ---
 

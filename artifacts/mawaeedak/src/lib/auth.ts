@@ -25,7 +25,7 @@ export type AuthSession = {
 // ── Demo mode constants ────────────────────────────────────────────────────
 const DEMO_ADMIN_USERNAME = "admin";
 const DEMO_ADMIN_PASSWORD = "mawaeedak@admin";
-const DEMO_AUTH_KEY = "admin_authenticated";
+const DEMO_SESSION_KEY = "mawaeedak_demo_session";
 
 // ── Supabase Auth ──────────────────────────────────────────────────────────
 
@@ -93,7 +93,13 @@ function signInDemo(
   password: string
 ): { success: boolean; error?: string } {
   if (username === DEMO_ADMIN_USERNAME && password === DEMO_ADMIN_PASSWORD) {
-    localStorage.setItem(DEMO_AUTH_KEY, "true");
+    sessionStorage.setItem(
+      DEMO_SESSION_KEY,
+      JSON.stringify({
+        user: { id: "demo-admin", role: "admin", displayName: "مدير النظام" },
+        isDemo: true,
+      })
+    );
     return { success: true };
   }
   return { success: false, error: "اسم المستخدم أو كلمة المرور غير صحيحة" };
@@ -103,19 +109,26 @@ function signInDemo(
  * signOutDemo — تسجيل خروج demo
  */
 function signOutDemo(): void {
-  localStorage.removeItem(DEMO_AUTH_KEY);
+  sessionStorage.removeItem(DEMO_SESSION_KEY);
 }
 
 /**
  * getDemoSession — قراءة session demo
  */
 function getDemoSession(): AuthSession | null {
-  const isAuth = localStorage.getItem(DEMO_AUTH_KEY) === "true";
-  if (!isAuth) return null;
-  return {
-    user: { id: "demo-admin", role: "admin", displayName: "مدير النظام" },
-    isDemo: true,
-  };
+  try {
+    const raw = sessionStorage.getItem(DEMO_SESSION_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as AuthSession;
+    if (!parsed || !parsed.user || typeof parsed.user.id !== "string") {
+      sessionStorage.removeItem(DEMO_SESSION_KEY);
+      return null;
+    }
+    return parsed;
+  } catch {
+    sessionStorage.removeItem(DEMO_SESSION_KEY);
+    return null;
+  }
 }
 
 // ── Unified Auth API ───────────────────────────────────────────────────────

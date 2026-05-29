@@ -74,7 +74,6 @@ export default function MorePage() {
   const handleLogout = async () => {
     const { authSignOut } = await import("@/lib/auth");
     await authSignOut().catch(() => {});
-    localStorage.removeItem("admin_authenticated");
     localStorage.removeItem("app-user");
     toast({ title: "تم تسجيل الخروج", duration: 3000 });
     setLocation("/");

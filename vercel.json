@@ -1,0 +1,11 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "corepack enable && pnpm install --frozen-lockfile && pnpm --filter @workspace/mawaeedak run build",
+  "outputDirectory": "artifacts/mawaeedak/dist/public",
+  "rewrites": [
+    {
+      "source": "/((?!assets/|icons/|manifest.json|favicon.svg|robots.txt|.*\\..*).*)",
+      "destination": "/index.html"
+    }
+  ]
+}

@@ -40,7 +40,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   });
 
   const [hideAds, setHideAds] = useState(() => localStorage.getItem('hide-ads') === 'true');
-  const [isAdmin, setAdmin] = useState(() => localStorage.getItem('admin_authenticated') === 'true');
+  const [isAdmin, setAdmin] = useState(false);
 
   const setUser = (updates: Partial<UserData>) => {
     setUserState(prev => {
@@ -53,10 +53,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     localStorage.setItem('hide-ads', hideAds ? 'true' : 'false');
   }, [hideAds]);
-
-  useEffect(() => {
-    localStorage.setItem('admin_authenticated', isAdmin ? 'true' : 'false');
-  }, [isAdmin]);
 
   return (
     <StoreContext.Provider value={{ user, setUser, hideAds, setHideAds, isAdmin, setAdmin }}>

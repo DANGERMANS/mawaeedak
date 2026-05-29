@@ -169,13 +169,12 @@ export default function AccountPage() {
     const { authSignOut } = await import("@/lib/auth");
     await authSignOut().catch(() => {});
     localStorage.removeItem("app-user");
-    localStorage.removeItem("admin_authenticated");
     setLocation("/");
   };
 
   const handleDeleteAccount = () => {
     const keys = [
-      "app-user", "admin_authenticated", NOTIF_PREFS_KEY, PRAYER_PREFS_KEY,
+      "app-user", NOTIF_PREFS_KEY, PRAYER_PREFS_KEY,
       CALENDAR_PREFS_KEY, "mawaeedak_work_tasks_v1", "mawaeedak_travel_v1",
       "mawaeedak_travel_checklist_v1", "mawaeedak_theme", "hide-ads",
     ];

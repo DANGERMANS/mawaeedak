@@ -274,14 +274,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     // ── Demo mode ─────────────────────────────────────────────────────────
     if (!isSupabaseEnabled || !supabase) {
-      const isDemoAuth = localStorage.getItem("admin_authenticated") === "true";
-      if (isDemoAuth) {
-        setSession({ user: { id: "demo-admin", role: "admin", displayName: "مدير النظام" }, isDemo: true });
-        setPhase("ready");
-      } else {
-        setPhase("login");
-      }
       clearTimeout(absoluteTimer);
+      setSession(null);
+      setPhase("login");
       return () => { mountedRef.current = false; };
     }
 
