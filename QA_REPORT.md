@@ -21,7 +21,7 @@
 - **Supabase status**: Optional production integration; frontend falls back safely when env vars are absent
 - **RLS status**: SQL and middleware patterns exist, production RLS verification remains pending until a Supabase project is connected for end-to-end checks
 - **API status**: Express API builds successfully; admin routes use server-side authorization middleware
-- **PWA status**: Local build includes manifest, icons, standalone display, and install metadata; production deployment currently serves stale assets
+- **PWA status**: Production manifest, icons, standalone display, and install metadata are now served successfully
 - **Mobile packaging status**: Capacitor/native packaging not configured yet; native path documented as waiting for store credentials and signing assets
 - **Auth/admin status**: User routes are available; admin access is no longer enabled via browser-local bypass, and admin protections are enforced server-side when configured
 - **Launch blockers before work**: external deployment provider access, production Supabase credentials, Apple/Google native credentials
