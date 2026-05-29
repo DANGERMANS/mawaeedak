@@ -29,9 +29,11 @@ jobs:
           pnpm --version
 
       - name: Install dependencies
+        env:
+          npm_config_ignore_scripts: "false"
         run: |
           corepack enable pnpm
-          pnpm install --frozen-lockfile --config.ignore-scripts=false
+          pnpm install --frozen-lockfile
 
       - name: Typecheck
         run: |
