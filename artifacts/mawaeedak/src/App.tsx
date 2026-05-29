@@ -55,6 +55,7 @@ import AdminStory from "@/features/admin/AdminStory";
 import AdminDataLayer from "@/features/admin/AdminDataLayer";
 import AdminAutomation from "@/features/admin/AdminAutomation";
 import AdminVisualGuide from "@/features/admin/AdminVisualGuide";
+import { AdminRuntimeBoundary } from "@/features/admin/AdminRuntimeBoundary";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -110,7 +111,8 @@ function MainApp() {
 
 function AdminRouter() {
   return (
-    <AdminLayout>
+    <AdminRuntimeBoundary>
+      <AdminLayout>
       <WouterRouter base="/admin">
         <Switch>
           <Route path="/" component={AdminDashboard} />
@@ -133,7 +135,8 @@ function AdminRouter() {
           <Route component={NotFound} />
         </Switch>
       </WouterRouter>
-    </AdminLayout>
+      </AdminLayout>
+    </AdminRuntimeBoundary>
   );
 }
 
