@@ -29,7 +29,9 @@ jobs:
           pnpm --version
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          export npm_config_user_agent="pnpm/$(pnpm --version)"
+          pnpm install --frozen-lockfile
 
       - name: Typecheck
         run: pnpm run typecheck
