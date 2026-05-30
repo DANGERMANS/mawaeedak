@@ -4,8 +4,6 @@
  * يوفر واجهة موحدة للمصادقة:
  * - إذا Supabase متصل → يستخدم Supabase Auth
  * - إذا Supabase غير متصل → demo mode في بيئة التطوير فقط
- *
- * demo credentials: admin / mawaeedak@admin
  */
 
 import { supabase, isSupabaseEnabled } from "./supabase";
@@ -24,9 +22,10 @@ export type AuthSession = {
 
 // ── Demo mode constants ────────────────────────────────────────────────────
 const DEMO_ADMIN_USERNAME = "admin";
-const DEMO_ADMIN_PASSWORD = "mawaeedak@admin";
+const DEMO_ADMIN_PASSWORD = import.meta.env.VITE_DEMO_ADMIN_PASSWORD;
 const DEMO_SESSION_KEY = "mawaeedak_demo_session";
-const isDemoAuthAllowed = import.meta.env.DEV;
+const isDemoAuthAllowed = import.meta.env.DEV && typeof DEMO_ADMIN_PASSWORD === "string" && DEMO_ADMIN_PASSWORD.length > 0;
+const ADMIN_ROLES = ["admin", "super_admin"] as const;
 
 // ── Supabase Auth ──────────────────────────────────────────────────────────
 
@@ -181,9 +180,17 @@ export async function getAuthSession(): Promise<AuthSession | null> {
  * isAdminUser — هل المستخدم admin أو super_admin؟
  */
 export function isAdminUser(session: AuthSession | null): boolean {
-  if (!session) return false;
-  if (session.isDemo && !isDemoAuthAllowed) return false;
-  return session.user.role === "admin" || session.user.role === "super_admin";
+  if (!session?.user?.id) return false;
+
+  if (session.isDemo) {
+    return (
+      isDemoAuthAllowed &&
+      session.user.id === "demo-admin" &&
+      session.user.role === "admin"
+    );
+  }
+
+  return ADMIN_ROLES.includes(session.user.role as typeof ADMIN_ROLES[number]);
 }
 
 /**
