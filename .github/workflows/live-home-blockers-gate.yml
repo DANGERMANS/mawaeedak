@@ -145,13 +145,41 @@ jobs:
           set -euo pipefail
           echo "## Database Proof" >> "$GITHUB_STEP_SUMMARY"
 
-          db_name="$(psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atc "select current_database();")"
-          db_user="$(psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atc "select current_user;")"
+          # GitHub-hosted runners do not reliably reach Supabase's direct IPv6 DB endpoint.
+          # If the secret is the direct URL, derive an equivalent IPv4-compatible Supabase
+          # Transaction Pooler URL at runtime without printing any secret values.
+          python3 - <<'PY' > /tmp/effective_database_url
+          import os
+          import urllib.parse
+
+          database_url = os.environ["DATABASE_URL"]
+          supabase_url = os.environ["SUPABASE_URL"].rstrip("/")
+          project_ref = urllib.parse.urlsplit(supabase_url).hostname.split(".")[0]
+          parsed = urllib.parse.urlsplit(database_url)
+          host = parsed.hostname or ""
+
+          if parsed.scheme in {"postgres", "postgresql"} and parsed.username == "postgres" and host == f"db.{project_ref}.supabase.co" and parsed.port == 5432:
+              raw_userinfo = parsed.netloc.rsplit("@", 1)[0]
+              raw_password = raw_userinfo.split(":", 1)[1] if ":" in raw_userinfo else ""
+              print(f"postgresql://postgres.{project_ref}:{raw_password}@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require")
+          else:
+              print(database_url)
+          PY
+
+          EFFECTIVE_DATABASE_URL="$(cat /tmp/effective_database_url)"
+          if [[ "$EFFECTIVE_DATABASE_URL" != "$DATABASE_URL" ]]; then
+            echo "ℹ️ DATABASE_URL normalized from direct Supabase host to Transaction Pooler for GitHub Actions connectivity." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "ℹ️ DATABASE_URL used as provided." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          db_name="$(psql "$EFFECTIVE_DATABASE_URL" -v ON_ERROR_STOP=1 -Atc "select current_database();")"
+          db_user="$(psql "$EFFECTIVE_DATABASE_URL" -v ON_ERROR_STOP=1 -Atc "select current_user;")"
           echo "✅ DB reachable." >> "$GITHUB_STEP_SUMMARY"
           echo "- Database: ${db_name}" >> "$GITHUB_STEP_SUMMARY"
           echo "- User: ${db_user}" >> "$GITHUB_STEP_SUMMARY"
 
-          mapfile -t existing_tables < <(psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -Atc "select table_name from information_schema.tables where table_schema='public' order by table_name;")
+          mapfile -t existing_tables < <(psql "$EFFECTIVE_DATABASE_URL" -v ON_ERROR_STOP=1 -Atc "select table_name from information_schema.tables where table_schema='public' order by table_name;")
           printf '%s\n' "${existing_tables[@]}" > /tmp/live_tables.txt
 
           echo "### Public tables found" >> "$GITHUB_STEP_SUMMARY"
