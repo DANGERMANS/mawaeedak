@@ -68,7 +68,9 @@ catalog:
 
 autoInstallPeers: false
 
-onlyBuiltDependencies:
+# pnpm 11 uses allowBuilds for approving dependency lifecycle scripts.
+# Keep this list minimal and explicit; do not disable ignored-build protections globally.
+allowBuilds:
   - '@swc/core'
   - esbuild
   - msw
