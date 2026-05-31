@@ -68,13 +68,13 @@ catalog:
 
 autoInstallPeers: false
 
-# pnpm 11 uses allowBuilds for approving dependency lifecycle scripts.
-# Keep this list minimal and explicit; do not disable ignored-build protections globally.
+# pnpm 11 uses allowBuilds as a map for approving dependency lifecycle scripts.
+# Keep this map minimal and explicit; do not disable ignored-build protections globally.
 allowBuilds:
-  - '@swc/core'
-  - esbuild
-  - msw
-  - unrs-resolver
+  '@swc/core': true
+  esbuild: true
+  msw: true
+  unrs-resolver: true
 
 overrides:
   # replit uses linux-x64 only, we can exclude all other platforms
