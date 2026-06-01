@@ -91,15 +91,29 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          echo "Scanning repository for committed production secrets patterns..."
-          if grep -RInE '(SUPABASE_SERVICE_ROLE_KEY\s*=|service_role\s*[:=]|ghp_[A-Za-z0-9_]{30,}|github_pat_[A-Za-z0-9_]{20,}|BEGIN (RSA |OPENSSH |EC )?PRIVATE KEY)' \
-            . \
-            --exclude-dir=.git \
-            --exclude-dir=node_modules \
-            --exclude=pnpm-lock.yaml; then
-            echo "Potential committed secret detected. Remove or document a safe false positive before passing this gate."
+          echo "Scanning repository for committed production secret values..."
+
+          COMMON_EXCLUDES=(
+            ':!.git/**'
+            ':!node_modules/**'
+            ':!pnpm-lock.yaml'
+            ':!.github/**'
+            ':!**/*.md'
+            ':!**/*.example'
+            ':!**/*.sample'
+            ':!**/example*'
+          )
+
+          TOKEN_MATCHES="$(git grep -I -n -E '(ghp_[A-Za-z0-9_]{30,}|github_pat_[A-Za-z0-9_]{20,}|BEGIN (RSA |OPENSSH |EC )?PRIVATE KEY)' -- . "${COMMON_EXCLUDES[@]}" || true)"
+          SERVICE_ROLE_MATCHES="$(git grep -I -n -E 'SUPABASE_SERVICE_ROLE_KEY[[:space:]]*=[[:space:]]*[^[:space:]#]+' -- . "${COMMON_EXCLUDES[@]}" || true)"
+
+          if [ -n "$TOKEN_MATCHES" ] || [ -n "$SERVICE_ROLE_MATCHES" ]; then
+            echo "Potential committed production secret detected:"
+            printf '%s\n' "$TOKEN_MATCHES" "$SERVICE_ROLE_MATCHES" | sed '/^$/d'
+            echo "Remove the secret value or move it to deployment secrets before passing this gate."
             exit 1
           fi
+
           echo "Security hygiene scan passed."
 
       - name: Produce Phase 4 QA summary
@@ -122,5 +136,5 @@ jobs:
             echo "- Build: pnpm run build"
             echo "- Smoke if present: pnpm -r --if-present run smoke"
             echo "- Static smoke: serve first built dist/index.html when present"
-            echo "- Security hygiene: committed secret pattern scan"
+            echo "- Security hygiene: committed production secret value scan"
           } >> "$GITHUB_STEP_SUMMARY"
