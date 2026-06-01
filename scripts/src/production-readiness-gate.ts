@@ -1,9 +1,23 @@
+import { request as httpRequest, type IncomingMessage } from "node:http";
+import { request as httpsRequest } from "node:https";
+import { URL } from "node:url";
+
+// This script intentionally avoids DOM fetch types so it typechecks under the
+// repository's Node-only scripts tsconfig.
+
 type CheckStatus = "passed" | "failed";
 
 type CheckResult = {
   name: string;
   status: CheckStatus;
   detail: string;
+};
+
+type HeaderMap = Record<string, string>;
+
+type HttpResult = {
+  statusCode: number;
+  body: string;
 };
 
 const results: CheckResult[] = [];
@@ -40,6 +54,7 @@ function optionalEnv(name: string): string | undefined {
 
 function normalizeUrl(name: string, raw: string | undefined): string | undefined {
   if (!raw) return undefined;
+
   try {
     const url = new URL(raw);
     const normalized = url.toString().replace(/\/+$/, "");
@@ -51,23 +66,67 @@ function normalizeUrl(name: string, raw: string | undefined): string | undefined
   }
 }
 
+function requestUrl(targetUrl: string, headers: HeaderMap = {}): Promise<HttpResult> {
+  return new Promise((resolve, reject) => {
+    const url = new URL(targetUrl);
+    const options = {
+      method: "GET",
+      headers,
+      timeout: 15_000,
+    };
+
+    const handleResponse = (response: IncomingMessage): void => {
+      const chunks: Buffer[] = [];
+
+      response.on("data", (chunk: Buffer | string) => {
+        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+      });
+
+      response.on("end", () => {
+        resolve({
+          statusCode: response.statusCode ?? 0,
+          body: Buffer.concat(chunks).toString("utf8"),
+        });
+      });
+    };
+
+    const request = url.protocol === "https:"
+      ? httpsRequest(url, options, handleResponse)
+      : url.protocol === "http:"
+        ? httpRequest(url, options, handleResponse)
+        : undefined;
+
+    if (!request) {
+      reject(new Error(`unsupported protocol: ${url.protocol}`));
+      return;
+    }
+
+    request.on("timeout", () => {
+      request.destroy(new Error("request timed out"));
+    });
+
+    request.on("error", reject);
+    request.end();
+  });
+}
+
 async function expectStatus(
   name: string,
   url: string | undefined,
   expectedStatuses: number[],
-  init?: RequestInit,
+  headers?: HeaderMap,
 ): Promise<void> {
   if (!url) return;
 
   try {
-    const response = await fetch(url, init);
-    if (expectedStatuses.includes(response.status)) {
-      pass(name, `HTTP ${response.status}`);
+    const response = await requestUrl(url, headers);
+    if (expectedStatuses.includes(response.statusCode)) {
+      pass(name, `HTTP ${response.statusCode}`);
       return;
     }
 
-    const text = await response.text().catch(() => "");
-    fail(name, `expected ${expectedStatuses.join("/")}, got HTTP ${response.status}${text ? ` — ${text.slice(0, 180)}` : ""}`);
+    const bodyPreview = response.body ? ` — ${response.body.slice(0, 180)}` : "";
+    fail(name, `expected ${expectedStatuses.join("/")}, got HTTP ${response.statusCode}${bodyPreview}`);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     fail(name, message);
@@ -103,10 +162,8 @@ async function main(): Promise<void> {
     [401, 403],
     serverAnonKey
       ? {
-          headers: {
-            apikey: serverAnonKey,
-            Authorization: `Bearer ${serverAnonKey}`,
-          },
+          apikey: serverAnonKey,
+          Authorization: `Bearer ${serverAnonKey}`,
         }
       : undefined,
   );
@@ -123,7 +180,7 @@ async function main(): Promise<void> {
       "admin:authorized-smoke",
       apiBase ? `${apiBase}/api/admin/stats` : undefined,
       [200],
-      { headers: { Authorization: `Bearer ${adminToken}` } },
+      { Authorization: `Bearer ${adminToken}` },
     );
   }
 
@@ -143,7 +200,7 @@ async function main(): Promise<void> {
   console.log("\nProduction readiness gate passed.");
 }
 
-main().catch((error) => {
+main().catch((error: unknown) => {
   const message = error instanceof Error ? error.stack ?? error.message : String(error);
   console.error(message);
   process.exit(1);
