@@ -8,6 +8,9 @@ import type { InferInsertModel } from "drizzle-orm";
 
 const router = Router();
 
+type FinancialEventInsert = InferInsertModel<typeof financialEventsTable>;
+type FinancialEventUpdate = Partial<FinancialEventInsert>;
+
 async function logAudit(action: string, entityType: string, entityId: number | null, entityName: string, description: string) {
   await db.insert(auditLogsTable).values({ action, entity_type: entityType, entity_id: entityId, entity_name: entityName, description, performed_by: "admin", status: "success" });
 }
@@ -69,7 +72,11 @@ router.get("/financial-events/countdown", async (req, res) => {
 router.post("/financial-events", requireAdmin, async (req, res) => {
   const parsed = CreateFinancialEventBody.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error });
-  const insertData = { ...parsed.data, amount: parsed.data.amount != null ? String(parsed.data.amount) : undefined };
+  const insertData: FinancialEventInsert = {
+    ...parsed.data,
+    name_ar: parsed.data.name,
+    amount: parsed.data.amount != null ? String(parsed.data.amount) : undefined,
+  };
   const [row] = await db.insert(financialEventsTable).values(insertData).returning();
   await logAudit("create", "financial_event", row.id, row.name, `إضافة حدث مالي: ${row.name}`);
   return res.status(201).json(row);
@@ -79,7 +86,11 @@ router.patch("/financial-events/:id", requireAdmin, async (req, res) => {
   const id = parseInt(req.params.id as string);
   const parsed = UpdateFinancialEventBody.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error });
-  const updateData = { ...parsed.data, amount: parsed.data.amount != null ? String(parsed.data.amount) : undefined };
+  const updateData: FinancialEventUpdate = {
+    ...parsed.data,
+    ...(parsed.data.name ? { name_ar: parsed.data.name } : {}),
+    amount: parsed.data.amount != null ? String(parsed.data.amount) : undefined,
+  };
   const [row] = await db.update(financialEventsTable).set(updateData).where(eq(financialEventsTable.id, id)).returning();
   if (!row) return res.status(404).json({ error: "غير موجود" });
   await logAudit("update", "financial_event", row.id, row.name, `تعديل حدث مالي: ${row.name}`);
