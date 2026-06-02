@@ -13,11 +13,11 @@ export const financialEventsTable = pgTable("financial_events", {
   id: serial("id").primaryKey(),
   /**
    * The unique identifier of the user this event belongs to. Use the UUID
-   * from `auth.users.id` in Supabase. For global events (e.g. official
-   * announcements applicable to all users) you can set this to null and
-   * handle it separately in your queries.
+   * from `auth.users.id` in Supabase. For global/admin-managed events (e.g.
+   * official announcements applicable to all users) this is intentionally
+   * nullable and should be handled separately in queries/RLS policies.
    */
-  user_id: uuid("user_id").notNull(),
+  user_id: uuid("user_id"),
   /**
    * Human-readable name of the event (e.g. "راتب شهر ذو الحجة 1447").
    * Keep `name` as the API-compatible canonical field used by existing
