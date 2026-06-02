@@ -19,9 +19,17 @@ export const financialEventsTable = pgTable("financial_events", {
    */
   user_id: uuid("user_id").notNull(),
   /**
-   * Human‑readable name of the event (e.g. "راتب شهر ذو الحجة 1447").
+   * Human-readable name of the event (e.g. "راتب شهر ذو الحجة 1447").
+   * Keep `name` as the API-compatible canonical field used by existing
+   * frontend/API clients.
    */
   name: text("name").notNull(),
+  /**
+   * Arabic display-name compatibility field used by the live Supabase table.
+   * The API writes this from `name` so current clients do not need to send a
+   * second field, while the database NOT NULL constraint remains satisfied.
+   */
+  name_ar: text("name_ar").notNull(),
   /**
    * Event type such as "salary", "support", or custom categories defined
    * by the system.
