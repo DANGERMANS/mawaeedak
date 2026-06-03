@@ -16,25 +16,19 @@ import {
 } from "@/hooks/useOfficialData";
 import { Plus, Edit2, Trash2, Loader2 } from "lucide-react";
 
-/**
- * AdminOfficialFinancial — a simple admin page for managing official
- * financial dates. Allows listing all records (confirmed and unconfirmed),
- * creating new entries, editing existing ones, and deleting entries. Uses
- * Supabase directly for listing and React Query mutations for writes.
- */
 export default function AdminOfficialFinancial() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  // Query all official financial dates regardless of confirmation status
   const { data: events, isLoading } = useQuery({
     queryKey: ["admin-official-financial"],
     queryFn: async () => {
+      if (!supabase) return [];
       const { data, error } = await supabase
         .from("official_financial_dates")
         .select("*")
         .order("occurrence_date_gregorian", { ascending: true });
       if (error) throw error;
-      return data;
+      return data ?? [];
     },
     retry: 1,
     staleTime: 60_000,
@@ -44,11 +38,9 @@ export default function AdminOfficialFinancial() {
   const updateEvent = useUpdateOfficialFinancialDate();
   const deleteEvent = useDeleteOfficialFinancialDate();
 
-  // Dialog state for add/edit
   const [isOpen, setIsOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
-  // Form fields
   const [eventKey, setEventKey] = useState("");
   const [eventName, setEventName] = useState("");
   const [dateGreg, setDateGreg] = useState("");
@@ -56,7 +48,6 @@ export default function AdminOfficialFinancial() {
   const [sourceAuthority, setSourceAuthority] = useState("");
   const [sourceUrl, setSourceUrl] = useState("");
   const [isConfirmed, setIsConfirmed] = useState(true);
-  // Delete confirmation
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
@@ -148,7 +139,6 @@ export default function AdminOfficialFinancial() {
         </Button>
       </div>
 
-      {/* Add/Edit dialog */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="rtl max-w-[450px] rounded-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -192,7 +182,6 @@ export default function AdminOfficialFinancial() {
         </DialogContent>
       </Dialog>
 
-      {/* List */}
       {isLoading ? (
         <div className="flex justify-center p-8">
           <Loader2 className="w-6 h-6 animate-spin text-primary" />
