@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ConfirmDialog } from "@/components/layout/ConfirmDialog";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import {
   useCreateOfficialPrayerTime,
@@ -16,26 +16,19 @@ import {
 } from "@/hooks/useOfficialData";
 import { Plus, Edit2, Trash2, Loader2 } from "lucide-react";
 
-/**
- * AdminOfficialPrayer — admin page to manage official prayer times. It lists
- * all records (confirmed and unconfirmed) and allows adding, editing and
- * deleting entries. Each prayer time record includes city, date and six
- * prayer times with metadata and confirmation status.
- */
 export default function AdminOfficialPrayer() {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-  // Fetch all prayer times
   const { data: events, isLoading } = useQuery({
     queryKey: ["admin-official-prayer"],
     queryFn: async () => {
+      if (!supabase) return [];
       const { data, error } = await supabase
         .from("official_prayer_times")
         .select("*")
         .order("date_gregorian", { ascending: true })
         .order("city_key", { ascending: true });
       if (error) throw error;
-      return data;
+      return data ?? [];
     },
     retry: 1,
     staleTime: 60_000,
@@ -45,11 +38,9 @@ export default function AdminOfficialPrayer() {
   const updateEvent = useUpdateOfficialPrayerTime(["admin-official-prayer"]);
   const deleteEvent = useDeleteOfficialPrayerTime(["admin-official-prayer"]);
 
-  // Dialog state
   const [isOpen, setIsOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
-  // Form fields
   const [cityKey, setCityKey] = useState("");
   const [cityName, setCityName] = useState("");
   const [dateGreg, setDateGreg] = useState("");
@@ -63,7 +54,6 @@ export default function AdminOfficialPrayer() {
   const [sourceAuthority, setSourceAuthority] = useState("");
   const [sourceUrl, setSourceUrl] = useState("");
   const [isConfirmed, setIsConfirmed] = useState(true);
-  // Delete
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
@@ -243,7 +233,6 @@ export default function AdminOfficialPrayer() {
         </DialogContent>
       </Dialog>
 
-      {/* List */}
       {isLoading ? (
         <div className="flex justify-center p-8"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
       ) : events && events.length > 0 ? (
@@ -258,18 +247,14 @@ export default function AdminOfficialPrayer() {
                   </div>
                   <span className="text-xs font-bold text-primary">{ev.date_gregorian}</span>
                 </div>
-                <div className="text-[11px] text-muted-foreground mb-1">
-                  الفجر {ev.fajr_time} · الشروق {ev.sunrise_time} · الظهر {ev.dhuhr_time} · العصر {ev.asr_time} · المغرب {ev.maghrib_time} · العشاء {ev.isha_time}
+                <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground my-2">
+                  <span>الفجر: {ev.fajr_time}</span><span>الظهر: {ev.dhuhr_time}</span><span>المغرب: {ev.maghrib_time}</span>
                 </div>
                 <div className="flex justify-between items-center border-t border-border pt-3 mt-2">
                   <div className="text-xs text-muted-foreground">{ev.is_confirmed ? "مؤكد" : "غير مؤكد"}</div>
                   <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => openEdit(ev)}>
-                      <Edit2 className="w-4 h-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => { setDeleteId(ev.id); setIsDeleteOpen(true); }}>
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => openEdit(ev)}><Edit2 className="w-4 h-4" /></Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => { setDeleteId(ev.id); setIsDeleteOpen(true); }}><Trash2 className="w-4 h-4" /></Button>
                   </div>
                 </div>
               </CardContent>
@@ -277,16 +262,14 @@ export default function AdminOfficialPrayer() {
           ))}
         </div>
       ) : (
-        <div className="text-center p-8 bg-card rounded-xl border border-dashed border-border text-muted-foreground">
-          لا توجد سجلات أوقات صلاة
-        </div>
+        <div className="text-center p-8 bg-card rounded-xl border border-dashed border-border text-muted-foreground">لا توجد أوقات صلاة رسمية</div>
       )}
 
       <ConfirmDialog
         open={isDeleteOpen}
         onOpenChange={setIsDeleteOpen}
-        title="حذف الوقت الرسمي"
-        description="هل أنت متأكد من الحذف؟"
+        title="حذف وقت الصلاة"
+        description="هل أنت متأكد من الحذف؟ سوف يختفي هذا الوقت من قائمة أوقات الصلاة الرسمية."
         onConfirm={handleDelete}
       />
     </div>
