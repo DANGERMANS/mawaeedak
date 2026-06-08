@@ -39,6 +39,36 @@ Each assignment must have:
 - Required evidence.
 - A final report using the approved report template.
 
+## Complete Company Team Model
+
+The AI team must operate as a complete technology company, not only as a coding team.
+
+The approved layers are:
+
+1. Leadership and control.
+2. Business/product strategy.
+3. AI orchestration and context preservation.
+4. Engineering and execution.
+5. Review, QA, security, privacy, and legal compliance.
+6. Release, store readiness, operations, observability, incidents, recovery, and cost control.
+7. Content, Arabic localization, official data quality, support, and analytics.
+
+Key non-engineering roles are mandatory when relevant:
+
+- Business Strategy Lead.
+- Legal/App Compliance Lead.
+- App Store/ASO Release Lead.
+- Customer Support Lead.
+- Incident Manager.
+- Backup & Disaster Recovery Lead.
+- Data Quality/Official Sources Lead.
+- Accessibility QA Lead.
+- Arabic Copy/Localization Lead.
+- Cost/FinOps Lead.
+- AI Context Librarian.
+
+Do not claim company readiness, launch readiness, or production readiness unless these areas are inspected and assigned where relevant.
+
 ## Repository Architecture
 
 Expected repository areas may include:
@@ -70,6 +100,10 @@ The audit must determine actual reality before repair:
 - Build/typecheck/test status.
 - Whether visible buttons/actions are real, partial, fake, broken, or unverified.
 - Auth/admin/security reality.
+- Privacy/legal/store readiness gaps.
+- Support, incident, observability, backup, and cost-control gaps.
+- Official data/source-quality gaps.
+- Accessibility and Arabic localization gaps.
 - First safe repair sequence.
 
 ## Absolute Forbidden Actions
@@ -82,11 +116,12 @@ Never do any of the following unless the user explicitly requests that exact act
 - Run broad repository scans repeatedly.
 - Run expensive installs/builds/typechecks/migrations/deployments when the task does not call for them.
 - Modify application source code during documentation/control-file tasks.
-- Claim the project is production ready before evidence-based QA, security, release, and launch checks are complete.
+- Claim the project is production ready before evidence-based QA, security, privacy, legal/store, release, operations, support, recovery, and launch checks are complete.
 - Expose secrets, tokens, service keys, JWTs, refresh tokens, reset tokens, or admin credentials.
 - Add fake data, fake buttons, fake success states, or fake integrations.
 - Treat Web/PWA as the real mobile application when the task concerns mobile.
 - Silently fall back to fake/local/mock data in production paths.
+- Add user-facing official, legal, or store claims without verified source/status.
 
 ## Security/Auth/Admin Rules
 
@@ -114,6 +149,7 @@ Never do any of the following unless the user explicitly requests that exact act
 - Any migration or data-shape change requires an explicit verification plan.
 - Financial date sources must be the official owning Saudi government authority for each program.
 - Source names and URLs must not be displayed inside user-facing financial/prayer cards; source explanation belongs in app information/about content.
+- Official data must include owner, freshness, approval status, and failure handling before being treated as reliable.
 
 ## Frontend RTL/Mobile Rules
 
@@ -124,6 +160,7 @@ Never do any of the following unless the user explicitly requests that exact act
 - Visual-reference work must be isolated and verified separately from functional fixes.
 - Visual references define identity, colors, cards, fonts, layout, and RTL behavior; do not copy phone frames, status bars, notches, clocks, or screenshot artifacts.
 - The approved bottom navigation order is: `الرئيسية - الرواتب - الخدمات - التقويم - المزيد`.
+- Accessibility must consider readable Arabic font sizes, contrast, touch targets, and small screens.
 
 ## API/Backend Rules
 
@@ -133,6 +170,16 @@ Never do any of the following unless the user explicitly requests that exact act
 - Error handling must avoid leaking internals or secrets.
 - API changes require focused smoke checks for success and failure paths.
 
+## Store/Legal/Support/Operations Rules
+
+- Store readiness requires App Store/Google Play metadata, screenshots, legal links, build evidence, and review-risk assessment.
+- Privacy readiness requires user-data inventory, consent/permission handling, account deletion path, and data-retention clarity.
+- Support readiness requires contact/support path, complaint categories, escalation path, and response ownership.
+- Incident readiness requires severity levels, owner assignment, communication path, postmortem expectation, and rollback/escalation model.
+- Backup/recovery readiness requires backup plan and restore verification for durable user/admin data.
+- Cost readiness requires known recurring services, usage-based risks, and owner for budget alerts.
+- Observability readiness requires crash/error monitoring, logs, and alert ownership.
+
 ## Verification Rules
 
 - Verification must match the scope of the task.
@@ -141,6 +188,7 @@ Never do any of the following unless the user explicitly requests that exact act
 - If a command is not run, report that honestly.
 - Do not claim a fix is verified unless the verification actually ran and passed.
 - UI/action work requires practical flow verification, not only static code checks.
+- Launch/company-readiness work requires legal/store/support/observability/recovery/cost evidence, not only build success.
 
 ## Definition of a Working Button or Action
 
@@ -186,4 +234,4 @@ Use only the verdicts required by the task or these default statuses:
 - `BLOCKED`
 - `READY FOR NEXT STEP`
 
-Do not use `production ready` unless release, security, QA, build, deployment, rollback, and launch gates are all satisfied.
+Do not use `production ready` unless release, security, QA, privacy, legal/store, build, deployment, observability, support, recovery, cost, rollback, and launch gates are all satisfied.
