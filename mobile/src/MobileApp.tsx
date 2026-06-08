@@ -16,7 +16,7 @@ function showStatus(title: string, body: string) {
   Alert.alert(title, body);
 }
 
-function AppText({ children, big = false, muted = false }: { children: string; big?: boolean; muted?: boolean }) {
+function AppText({ children, big = false, muted = false }: { children?: string; big?: boolean; muted?: boolean }) {
   return createElement(Text, { style: [styles.text, big ? styles.big : null, muted ? styles.muted : null] }, children);
 }
 

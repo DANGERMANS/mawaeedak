@@ -21,7 +21,8 @@
     },
     "plugins": [
       "expo-router",
-      "expo-notifications"
+      "expo-notifications",
+      "@sentry/react-native"
     ],
     "experiments": {
       "typedRoutes": true
