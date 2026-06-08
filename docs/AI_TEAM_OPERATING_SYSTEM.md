@@ -6,6 +6,8 @@ This document defines the operating model for AI agents working on `DANGERMANS/m
 
 The goal is not to create many uncontrolled agents. The goal is to run a disciplined execution system where each agent has one clear role, one bounded task, verifiable outputs, and an independent acceptance path.
 
+This model must operate like a complete technology company, not a loose group of coding agents. It includes leadership, product, engineering, QA, security, release, operations, legal/compliance, customer support, business strategy, data quality, cost control, and AI context governance.
+
 ## Non-Negotiable Principles
 
 1. **One agent, one task.** No broad multi-area execution unless the user explicitly approves that scope.
@@ -18,6 +20,8 @@ The goal is not to create many uncontrolled agents. The goal is to run a discipl
 8. **Production paths must not silently use fake data.** Mock, seed, local, and production data must be separated.
 9. **Evidence controls acceptance.** Reports without commands, files changed, manual verification, and remaining risks are not acceptable.
 10. **Do not move to the next phase before the current phase is closed.**
+11. **Company readiness is broader than code.** Store readiness, legal readiness, support readiness, observability, incident handling, backups, data quality, and costs must be considered before launch.
+12. **Project context must be preserved.** Agents must not lose established decisions, repeat old mistakes, or overwrite approved product rules.
 
 ## Source of Truth Order
 
@@ -32,7 +36,7 @@ Agents must use the following order of authority:
 
 If two sources conflict, stop and report the conflict instead of guessing.
 
-## Approved Core Team Structure
+## Approved Complete Company Team Structure
 
 ### Leadership and Control
 
@@ -43,6 +47,8 @@ If two sources conflict, stop and report the conflict instead of guessing.
 | Product Director | Converts user intent into executable product requirements | Scope, acceptance criteria, user flows |
 | Program Manager | Controls sequence and phase closure | Task order, dependencies, no premature phase jumps |
 | AI Orchestrator | Assigns agents and preserves context discipline | One-task-per-agent execution, context handoff |
+| Business Strategy Lead | Protects business direction and value | Priorities, launch value, monetization assumptions, roadmap tradeoffs |
+| AI Context Librarian | Preserves project memory and decisions | Decision log, approved constraints, repeated-error prevention, context packs |
 
 ### Engineering and Execution
 
@@ -63,38 +69,68 @@ If two sources conflict, stop and report the conflict instead of guessing.
 | Principal Code Reviewer | Reviews code quality independently | Maintainability, debt, correctness, boundaries |
 | QA Lead | Proves functions work in practice | Screens, buttons, forms, flows, success/failure cases |
 | QA Automation Engineer | Converts checks into repeatable tests | Smoke, regression, navigation, forms, action checks |
+| Accessibility QA Lead | Ensures usability for all users | Contrast, font sizes, touch targets, screen sizes, readability, accessibility defects |
 | Security Lead | Blocks security failures | Secrets, auth, admin access, RLS, server-side authorization |
 | Privacy/Compliance Lead | Protects user data and legal readiness | Privacy, deletion, retention, permissions, consent |
+| Legal/App Compliance Lead | Protects legal and platform compliance | Terms, privacy, disclaimers, App Store/Google Play policy risks, user rights |
 
-### Release and Operations
+### Release, Store, and Operations
 
 | Role | Mission | Owns |
 |---|---|---|
 | DevOps/Release Engineer | Makes builds and releases reliable | typecheck, build, CI/CD, environments, rollback |
 | SRE/Observability Engineer | Makes production observable | crash reporting, logs, alerts, monitoring, incident visibility |
 | Launch Manager | Controls launch decision | release notes, go/no-go, rollback plan, launch checklist |
+| App Store/ASO Release Lead | Prepares store release quality | App Store/Google Play metadata, screenshots, descriptions, keywords, review-risk checks |
+| Incident Manager | Controls production incidents | Severity, triage, owner assignment, incident timeline, user impact, postmortem |
+| Backup & Disaster Recovery Lead | Protects recovery capability | Backups, restore tests, data-loss plan, disaster recovery runbook |
+| Cost/FinOps Lead | Controls operational cost | Supabase, hosting, APIs, notifications, AI usage, budget alerts, cost-risk reporting |
 
-### Content and Measurement
+### Content, Data, Support, and Measurement
 
 | Role | Mission | Owns |
 |---|---|---|
 | Content Lead | Maintains Arabic content and official wording | Daily messages, labels, financial dates, source status |
+| Arabic Copy/Localization Lead | Polishes Arabic product language | Saudi Arabic clarity, formal/user-facing tone, labels, errors, notifications |
+| Data Quality/Official Sources Lead | Verifies official data integrity | Financial dates, prayer-time source status, news/jobs source quality, data freshness |
+| Customer Support Lead | Prepares user support operations | Complaint flows, support categories, escalation, response templates, SLA model |
 | Product Analytics Lead | Measures product usage and weak flows | Events, funnels, engagement, decision metrics |
+
+## Team Layer Rule
+
+Do not add more engineering roles before using the existing ones. If the team feels incomplete, first determine which layer is missing:
+
+1. Leadership and decision.
+2. Product and business.
+3. Engineering and execution.
+4. Review, QA, security, privacy, legal.
+5. Release, store, operations, incident response.
+6. Content, official data, support, analytics.
+7. AI context preservation.
+
+New roles are allowed only if they close a real governance gap and do not duplicate an existing owner.
 
 ## Mandatory Review Matrix
 
 | Implemented Area | Required Reviewers Before Acceptance |
 |---|---|
-| Mobile UI/UX | Design Systems Lead + QA Lead + CTO if architecture is affected |
+| Mobile UI/UX | Design Systems Lead + Accessibility QA Lead + QA Lead + CTO if architecture is affected |
 | Mobile functionality | QA Lead + Principal Code Reviewer |
 | Backend/API | Principal Code Reviewer + Security Lead + QA Lead |
 | Database/Supabase/RLS | Database/Supabase Architect + Security Lead + CTO |
 | Admin/owner panel | Security Lead + QA Lead + Product Director |
-| Auth/password/admin roles | Security Lead + Privacy/Compliance Lead + CTO |
+| Auth/password/admin roles | Security Lead + Privacy/Compliance Lead + Legal/App Compliance Lead + CTO |
 | Notifications/integrations | Integrations Lead + QA Lead + Security Lead when credentials are involved |
 | Release/deployment | DevOps/Release Engineer + Launch Manager + CTO |
-| Content shown to users | Content Lead + Product Director |
-| Production readiness | CTO + QA Lead + Security Lead + DevOps/Release Engineer + Launch Manager |
+| App Store/Google Play release | App Store/ASO Release Lead + Legal/App Compliance Lead + Launch Manager |
+| Content shown to users | Content Lead + Arabic Copy/Localization Lead + Product Director |
+| Official financial/prayer/news data | Data Quality/Official Sources Lead + Content Lead + Product Director |
+| Customer support/contact/complaints | Customer Support Lead + Privacy/Compliance Lead + Product Director |
+| Analytics/tracking | Product Analytics Lead + Privacy/Compliance Lead + Product Director |
+| Backups/recovery | Backup & Disaster Recovery Lead + DevOps/Release Engineer + CTO |
+| Incident response | Incident Manager + SRE/Observability Engineer + CTO + Customer Support Lead when users are affected |
+| Cost-affecting infrastructure | Cost/FinOps Lead + DevOps/Release Engineer + CTO |
+| Production readiness | CTO + QA Lead + Security Lead + Privacy/Compliance Lead + Legal/App Compliance Lead + DevOps/Release Engineer + SRE/Observability Engineer + Launch Manager |
 
 ## Definition of a Working Button or Action
 
@@ -113,6 +149,24 @@ A button/action is not considered working unless all applicable items are presen
 
 `onClick exists` or `handler was added` is not proof that the action works.
 
+## Company Readiness Gates
+
+Before any launch or production-readiness claim, the following must be reviewed:
+
+1. Product scope is closed by Product Director.
+2. Architecture is accepted by CTO.
+3. Critical flows pass QA.
+4. Accessibility blockers are resolved or explicitly accepted.
+5. Security and privacy risks are reviewed.
+6. Store/legal compliance blockers are reviewed.
+7. Official data quality and source status are reviewed.
+8. Build and release pipeline are verified.
+9. Crash/error monitoring and incident ownership are defined.
+10. Backup and recovery plan exists for durable data.
+11. Support escalation path is defined.
+12. Operating costs and external-service risks are understood.
+13. Context/decision log is updated.
+
 ## Forbidden Completion Claims
 
 Agents must not use any of these as final proof:
@@ -122,8 +176,10 @@ Agents must not use any of these as final proof:
 - `No visible errors`.
 - `I added onClick`.
 - `Ready` without test output.
-- `Production ready` without release, QA, security, and build evidence.
+- `Production ready` without release, QA, security, legal/compliance, observability, recovery, support, and build evidence.
 - `Connected` without demonstrating successful read/write or request/response.
+- `Store ready` without metadata, screenshots, legal links, policy risk review, and build evidence.
+- `Official data verified` without source, freshness, owner, and fallback-status evidence.
 
 ## Required Task Flow
 
@@ -151,6 +207,9 @@ That audit must identify:
 - Build/typecheck status.
 - Whether visible actions are real or superficial.
 - Whether production uses real data or fake/fallback data.
+- Security, privacy, legal/store, and support readiness gaps.
+- Official data/source quality gaps.
+- Observability, backup, incident, and cost-control gaps.
 - Top root-cause risks.
 - First safe repair sequence.
 
@@ -158,4 +217,4 @@ Use `docs/PROJECT_REALITY_AUDIT.md` as the audit template.
 
 ## Final Rule
 
-No agent is allowed to optimize for speed over correctness. The accepted output must be precise, verifiable, bounded, and professionally maintainable.
+No agent is allowed to optimize for speed over correctness. The accepted output must be precise, verifiable, bounded, professionally maintainable, and operationally launch-aware.
