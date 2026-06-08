@@ -1,65 +1,64 @@
 # MOBILE_QA_CHECKLIST
 
-## الحكم
+## Current QA Verdict
 
-Status: UNVERIFIED
-
-لم يتم تشغيل التطبيق على جهاز أو محاكي في هذه الدفعة. محاولة استنساخ الفرع محلياً فشلت بسبب DNS: `Could not resolve host: github.com`، لذلك بقيت أوامر `typecheck` و`doctor` و`expo start` غير منفذة.
-
-## فحص التبويبات
-
-| العنصر | الحالة | المطلوب |
-|---|---|---|
-| الرئيسية | UNVERIFIED | فتح الشاشة والتأكد من ظهور البطاقات |
-| الرواتب | UNVERIFIED | فتح الشاشة والتأكد من عدم وجود بيانات رسمية مزيفة |
-| الخدمات | UNVERIFIED | الترتيب: احسب هدفك، حساب التكاليف، ذكرني، السفر، الدراسة والإجازات، الوظائف والأخبار، بطاقة اليوم، صوتك مسموع |
-| التقويم | UNVERIFIED | ظهور حالة CRUD قيد الربط وعدم ادعاء حفظ حقيقي |
-| المزيد | UNVERIFIED | ظهور الحساب والإعدادات والإشعارات والسياسات والدعم والمشاركة |
-
-## فحص الأزرار
-
-| الزر/الإجراء | الحالة | الملاحظة |
-|---|---|---|
-| فتح الخدمات من الرئيسية | UNVERIFIED | onPress موجود ويغير tab حسب الكود، يحتاج runtime |
-| بطاقات الرواتب | UNVERIFIED | تضغط وتظهر Alert حسب الكود، يحتاج runtime |
-| بطاقات الخدمات | UNVERIFIED | تضغط وتظهر Alert حسب الكود، يحتاج runtime |
-| إضافة موعد | UNVERIFIED | يظهر Alert ولا يدعي حفظاً حقيقياً |
-| تبويبات bottom nav | UNVERIFIED | onPress موجود لكل تبويب |
-
-## فحص RTL والعربية
-
-| البند | الحالة | الملاحظة |
-|---|---|---|
-| اتجاه النص | UNVERIFIED | الكود يستخدم writingDirection/textAlign، يحتاج جهاز |
-| ترتيب bottom nav | PASS STATIC | الترتيب مطابق في الكود |
-| وضوح العربية | PARTIAL | النصوص واضحة مبدئياً وتحتاج مراجعة شاشة |
-
-## فحص الوصولية
-
-| البند | الحالة | المطلوب |
-|---|---|---|
-| أحجام الخطوط | UNVERIFIED | اختبار iPhone صغير وأندرويد صغير |
-| التباين | UNVERIFIED | فحص مرئي فعلي |
-| مساحة اللمس | PARTIAL | الأزرار تستخدم minHeight تقريبي، يحتاج اختبار |
-| قارئ الشاشة | MISSING | لم يتم ضبط accessibilityLabel بعد |
-
-## فحص البيانات الرسمية
-
-| البند | الحالة | الملاحظة |
-|---|---|---|
-| مواقيت الصلاة | PASS STATIC | تظهر كحالة انتظار فقط |
-| الرواتب والدعم | PASS STATIC | لا تعرض تواريخ أو أرقام حقيقية |
-| الأخبار والوظائف | PASS STATIC | قيد المصدر الموثق |
-
-## أوامر مطلوبة قبل القبول
-
-```bash
-cd mobile
-npm run typecheck
-npm run doctor
-npx expo start --clear
+```text
+PARTIAL PASS - mobile shell verification only
 ```
 
-## نتيجة هذه الدفعة
+This checklist reflects the verification completed after commit `fbbea503da852fd2524363ee872c62371451c970`.
 
-لا تقبل هذه القائمة كـ QA pass. هي قائمة فحص وتحضير فقط، وأوامر التحقق بقيت BLOCKED بسبب عدم قدرة البيئة الحالية على استنساخ GitHub.
+It does not claim launch ready or production ready.
+
+## Automated / Local Checks
+
+| Check | Status | Evidence |
+|---|---|---|
+| `npm run typecheck` | PASS | TypeScript completed with no errors |
+| `npm run doctor` | PASS | Expo doctor reported `18/18 checks passed` |
+| `npx expo start --clear` | PASS LOCAL | Metro started locally |
+| Metro `/status` | PASS | Returned `packager-status:running` |
+| `npm audit` | NEEDS DECISION | Still reports `14 moderate severity vulnerabilities` |
+
+## Device QA
+
+| Check | Status | Note |
+|---|---|---|
+| Expo Go on physical device | NOT RUN | Required before broader mobile acceptance |
+| iOS simulator | NOT RUN | Not verified |
+| Android emulator | NOT RUN | Not verified |
+| Real navigation interaction | NOT RUN | Needs device/simulator QA |
+| Accessibility on device | NOT RUN | Needs device/simulator QA |
+
+## Scope Confirmation
+
+The completed QA only proves:
+
+- The mobile shell compiles.
+- Expo doctor accepts the project setup.
+- Metro can start locally.
+
+The completed QA does not prove:
+
+- Production readiness.
+- Store readiness.
+- Full app feature readiness.
+- Real device behavior.
+- Sentry runtime reporting.
+- Auth/Supabase/notifications/calendar functionality.
+
+## PR State
+
+- PR: `#31`
+- State: Draft
+- Last known mergeable value: `false`
+
+The PR must remain Draft until the user explicitly approves changing it.
+
+## External Checks
+
+Vercel failures are outside the mobile shell scope and should not be used as proof that mobile failed. If branch protection requires Vercel success, those failures still need a separate decision before final merge.
+
+## Next Safe Step
+
+Investigate why PR `#31` is `mergeable=false` without converting it to Ready.
