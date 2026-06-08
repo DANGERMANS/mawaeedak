@@ -4,7 +4,7 @@
 
 Verdict: NEEDS FIXES
 
-تم بدء تحويل controlled migration على فرع العمل فقط. لم يتم تعديل `main`. لم يتم تعديل الويب أو لوحة المالك أو API.
+تم بدء تحويل controlled migration على فرع العمل فقط. لم يتم تعديل `main`. لم يتم تعديل الويب أو لوحة المالك أو API أو Supabase/RLS.
 
 ## الفرع
 
@@ -35,12 +35,23 @@ Verdict: NEEDS FIXES
 - إضافة شاشات أولية غير فارغة لكل تبويب.
 - منع عرض بيانات رسمية مزيفة؛ كل البيانات الرسمية حالتها انتظار ربط.
 - إنشاء خطة الهجرة.
+- إنشاء `docs/MOBILE_QA_CHECKLIST.md`.
+- إنشاء `docs/MOBILE_RELEASE_READINESS.md` كوثيقة حالة فقط.
+
+## التحقق المطلوب ونتيجته
+
+| الأمر | النتيجة | السبب |
+|---|---|---|
+| `npm run typecheck` داخل `mobile/` | BLOCKED / NOT RUN | فشل استنساخ المستودع محلياً بسبب DNS: `Could not resolve host: github.com` |
+| `npm run doctor` داخل `mobile/` | BLOCKED / NOT RUN | يعتمد على وجود clone/runtime محلي، وهو غير متاح بسبب فشل DNS |
+| `npx expo start --clear` داخل `mobile/` | BLOCKED / NOT RUN | يعتمد على clone/runtime محلي، وهو غير متاح بسبب فشل DNS |
+| Runtime device/simulator | UNVERIFIED | لم يتم فتح التطبيق على جهاز أو محاكي |
 
 ## ما لم يتم
 
-- لم يتم تشغيل `npm run typecheck` بسبب عدم توفر clone/runtime محلي في هذه الأداة.
-- لم يتم تشغيل `npx expo start --clear`.
-- لم يتم تشغيل `npm run doctor`.
+- لم يتم تشغيل `npm run typecheck` فعلياً.
+- لم يتم تشغيل `npx expo start --clear` فعلياً.
+- لم يتم تشغيل `npm run doctor` فعلياً.
 - لم يتم اختبار الجهاز أو المحاكي.
 - لم يتم تنفيذ Auth حقيقي.
 - لم يتم ربط Supabase للجوال.
@@ -64,9 +75,9 @@ Verdict: NEEDS FIXES
 | 9 | DOCUMENTED ONLY | لا Auth فعلي |
 | 10 | DOCUMENTED ONLY | لا ربط بيانات فعلي |
 | 11 | DOCUMENTED ONLY | لا إرسال إشعارات فعلي |
-| 12 | DOCUMENTED ONLY | checklist منفصل مطلوب |
-| 13 | BLOCKED | أوامر لم تعمل محلياً |
-| 14 | DOCUMENTED ONLY | readiness doc مطلوب |
+| 12 | DOCUMENTED ONLY | checklist موجود لكن runtime غير مؤكد |
+| 13 | BLOCKED | أوامر التحقق لم تعمل محلياً بسبب DNS |
+| 14 | PARTIAL | release readiness doc موجود كحالة فقط |
 | 15 | PARTIAL | هذه الحالة الحالية |
 
 ## المخاطر
@@ -75,7 +86,8 @@ Verdict: NEEDS FIXES
 - `mobile/` جديد على فرع العمل وقد يحتاج ضبط workspace إن أراد الفريق تشغيله من الجذر.
 - بعض المكونات أُنشئت بصيغة `createElement` بسبب حظر أداة GitHub لبعض ملفات JSX، وهذا يحتاج مراجعة جودة لاحقة.
 - لا يوجد ربط حقيقي للبيانات أو Auth أو الإشعارات.
+- لا يوجد دليل runtime أن Expo يفتح فعلياً.
 
 ## next safe step
 
-تشغيل `npm run typecheck` داخل `mobile/` وإصلاح أخطاء TypeScript/Expo داخل `mobile/` فقط.
+تشغيل `npm run typecheck` داخل `mobile/` على بيئة محلية لديها وصول GitHub/Node/Expo، ثم إصلاح أخطاء TypeScript/Expo داخل `mobile/` فقط.
