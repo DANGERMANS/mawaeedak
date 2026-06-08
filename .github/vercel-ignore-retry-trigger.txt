@@ -1,0 +1,2 @@
+Temporary trigger for Vercel ignored-build verification.
+This file is intentionally outside web/api relevant paths and will be removed immediately.
