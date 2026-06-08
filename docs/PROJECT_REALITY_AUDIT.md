@@ -69,6 +69,8 @@ Identify:
 - Supabase usage.
 - API server usage.
 - localStorage usage.
+- Persistence model.
+- Data ownership boundaries.
 
 ### 5. Auth/Admin/Security Reality
 
@@ -82,6 +84,7 @@ Inspect and report:
 - Exposed secret risk.
 - Admin route protection.
 - User data isolation risk.
+- Password/reset/session risk if applicable.
 
 ### 6. Mobile Reality
 
@@ -96,6 +99,7 @@ If `mobile/` exists, inspect:
 - Persistence approach.
 - Notification approach.
 - Whether screens are functional or mostly static.
+- Whether Web/PWA is being mistaken for real mobile.
 
 ### 7. Admin/Owner Panel Reality
 
@@ -109,6 +113,7 @@ Inspect:
 - Auth/admin protection.
 - Persistence.
 - Fake/superficial controls.
+- Audit logs or owner-action traceability if present.
 
 ### 8. Button and Action Reality Sampling
 
@@ -132,9 +137,13 @@ For each sampled action, include:
 
 - File path.
 - Handler/function.
+- Execution logic.
 - Data source.
 - Persistence result.
+- Loading state.
+- Success state.
 - Error handling.
+- Authorization boundary when relevant.
 - Evidence.
 
 ### 9. Build/Typecheck/Test Reality
@@ -162,8 +171,81 @@ Inspect:
 - Production build path.
 - Known deployment blockers.
 - Web vs mobile deployment distinction.
+- Rollback/release evidence if present.
 
-### 11. Risk Register
+### 11. Business and Product Reality
+
+Inspect and report:
+
+- Current product scope.
+- Current launch-critical flows.
+- Features that are real vs planned.
+- Features that look user-facing but are not functionally complete.
+- Any roadmap or priority conflicts.
+- Any monetization/business assumptions found.
+
+### 12. Legal, Privacy, and Store Reality
+
+Inspect and report:
+
+- Privacy policy presence/status.
+- Terms/status.
+- Disclaimer/status.
+- Account deletion/data deletion flow.
+- Data permissions and consent text.
+- App Store/Google Play metadata readiness if present.
+- Store screenshots/assets readiness if present.
+- Store rejection risks.
+
+### 13. Support and Customer Operations Reality
+
+Inspect and report:
+
+- Support/contact path.
+- Complaints/suggestions flow.
+- Escalation categories.
+- Response ownership.
+- User-facing help content.
+- Support data privacy risk.
+
+### 14. Observability, Incident, Backup, and Cost Reality
+
+Inspect and report:
+
+- Crash/error monitoring.
+- Logs and alert ownership.
+- Incident severity model.
+- Rollback plan.
+- Backup plan.
+- Restore test evidence.
+- External services and recurring cost drivers.
+- Cost/budget risk.
+
+### 15. Official Data, Arabic, Localization, and Accessibility Reality
+
+Inspect and report:
+
+- Official financial-date source model.
+- Prayer-time source model.
+- News/jobs source model.
+- Data freshness/update model.
+- Approval status handling.
+- Arabic wording quality.
+- RTL quality.
+- Font/readability quality.
+- Contrast/touch target/accessibility risks.
+
+### 16. AI Context and Decision Log Reality
+
+Inspect and report:
+
+- Whether approved project decisions are documented.
+- Whether agent context files exist and are current.
+- Whether repeated-error prevention exists.
+- Whether next tasks can be executed without relying on old chat context.
+- Missing decision-log entries.
+
+### 17. Risk Register
 
 Classify risks:
 
@@ -174,7 +256,32 @@ Classify risks:
 | Medium |  |  |  |  |
 | Low |  |  |  |  |
 
-### 12. First Safe Repair Sequence
+Required owners may include:
+
+- CEO.
+- CTO.
+- Product Director.
+- Principal Software Architect.
+- Mobile Principal Engineer.
+- Backend/API Lead.
+- Database/Supabase Architect.
+- Design Systems Lead.
+- QA Lead.
+- Security Lead.
+- Privacy/Compliance Lead.
+- Legal/App Compliance Lead.
+- App Store/ASO Release Lead.
+- Customer Support Lead.
+- Incident Manager.
+- Backup & Disaster Recovery Lead.
+- SRE/Observability Engineer.
+- Cost/FinOps Lead.
+- Data Quality/Official Sources Lead.
+- Accessibility QA Lead.
+- Arabic Copy/Localization Lead.
+- AI Context Librarian.
+
+### 18. First Safe Repair Sequence
 
 List the first five repair tasks only.
 
@@ -186,18 +293,19 @@ Each task must include:
 - Files likely involved.
 - Required verification.
 - Acceptance criteria.
+- Required reviewers.
 
 Do not recommend broad tasks like `fix the whole app`.
 
-### 13. Audit Files Read
+### 19. Audit Files Read
 
 List all files read.
 
-### 14. Commands Run
+### 20. Commands Run
 
 List all commands run and results.
 
-### 15. Final Audit Decision
+### 21. Final Audit Decision
 
 Use this format:
 
@@ -225,6 +333,8 @@ During this audit, do not:
 - Change data sources.
 - Edit environment variables.
 - Claim production readiness.
+- Claim launch readiness.
+- Claim store readiness.
 - Open multiple repair tasks.
 
 The audit exists to identify reality before repair.
