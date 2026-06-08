@@ -15,10 +15,11 @@ This project must be treated as a production-intended Saudi Arabic scheduling/ev
 Every agent must read these files before any work:
 
 1. `AGENTS.md`
-2. `docs/AI_TEAM_OPERATING_SYSTEM.md`
-3. `docs/AGENT_TASK_TEMPLATE.md`
-4. `docs/ACCEPTANCE_GATES.md`
-5. `docs/AGENT_REPORT_TEMPLATE.md`
+2. `docs/AI_CONTEXT_MEMORY.md`
+3. `docs/AI_TEAM_OPERATING_SYSTEM.md`
+4. `docs/AGENT_TASK_TEMPLATE.md`
+5. `docs/ACCEPTANCE_GATES.md`
+6. `docs/AGENT_REPORT_TEMPLATE.md`
 
 For the first repository-wide inspection, agents must also use:
 
@@ -68,6 +69,22 @@ Key non-engineering roles are mandatory when relevant:
 - AI Context Librarian.
 
 Do not claim company readiness, launch readiness, or production readiness unless these areas are inspected and assigned where relevant.
+
+## Current Memory Requirement
+
+Agents must treat `docs/AI_CONTEXT_MEMORY.md` as the current project memory.
+
+That file contains:
+
+- Current executive decisions.
+- Current branch reality.
+- Current only safe next step.
+- Standing product rules.
+- Standing engineering rules.
+- Current blockers.
+- Repeated-error prevention.
+
+If any task conflicts with the memory file, the agent must stop and report the conflict unless the user explicitly says the new instruction overrides the memory.
 
 ## Repository Architecture
 
