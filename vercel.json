@@ -1,6 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "corepack enable && pnpm install --frozen-lockfile && pnpm --filter @workspace/mawaeedak run build",
+  "ignoreCommand": "bash scripts/vercel-ignore-unaffected.sh web",
   "outputDirectory": "artifacts/mawaeedak/dist/public",
   "rewrites": [
     {
