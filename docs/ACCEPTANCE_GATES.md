@@ -38,6 +38,7 @@ Required checks depend on task type, but may include:
 - Current data source is identified.
 - Current navigation/action wiring is verified.
 - Current tests/scripts are identified from `package.json` files.
+- Current legal/store/support/observability/backup/cost readiness is identified when relevant.
 
 Fail condition: the agent acts from memory, assumption, or generic advice rather than repository evidence.
 
@@ -65,8 +66,10 @@ Implementation must follow these rules:
 - Do not add fake UI actions.
 - Do not expose secrets.
 - Do not downgrade security.
+- Do not add operational cost without reporting the impact.
+- Do not add store/legal/support claims without evidence.
 
-Fail condition: broad unrelated rewrites, unapproved deletion, fake data, fake buttons, or weakened auth/RLS.
+Fail condition: broad unrelated rewrites, unapproved deletion, fake data, fake buttons, weakened auth/RLS, or unsupported launch/store/legal readiness claims.
 
 ## Gate 5 — Functional Verification
 
@@ -99,10 +102,11 @@ The agent must verify relevant user flows such as:
 - Refresh/reopen when persistence is required.
 - Test failure/error state.
 - Test authorization boundary when applicable.
+- Test Arabic/RTL readability and touch usability when user-facing.
 
 Fail condition: claiming a button works only because a handler exists.
 
-## Gate 7 — Security and Privacy Review
+## Gate 7 — Security, Privacy, Legal, and Data Review
 
 Required for any task touching:
 
@@ -114,8 +118,11 @@ Required for any task touching:
 - Environment variables.
 - Notifications or external credentials.
 - Account deletion or privacy settings.
+- Store/legal user-facing claims.
+- Official financial/prayer/news/job data.
+- Analytics or tracking.
 
-Fail condition: security-sensitive changes without Security Lead or Privacy/Compliance review.
+Fail condition: sensitive changes without the required Security Lead, Privacy/Compliance Lead, Legal/App Compliance Lead, or Data Quality/Official Sources Lead review.
 
 ## Gate 8 — Independent Review
 
@@ -125,11 +132,18 @@ Minimum review expectations:
 
 - Code changes: Principal Code Reviewer.
 - User-facing functionality: QA Lead.
+- UI readability/accessibility: Accessibility QA Lead.
 - Security-sensitive work: Security Lead.
+- Privacy/user-data work: Privacy/Compliance Lead.
+- Legal/store-policy-sensitive work: Legal/App Compliance Lead.
+- Official data work: Data Quality/Official Sources Lead.
 - Architecture changes: CTO.
 - Release changes: DevOps/Release Engineer + Launch Manager.
+- Store release changes: App Store/ASO Release Lead + Launch Manager.
+- Support flow changes: Customer Support Lead.
+- Cost-affecting infrastructure changes: Cost/FinOps Lead.
 
-Fail condition: final acceptance by the same agent that implemented the work.
+Fail condition: final acceptance by the same agent that implemented the work or missing required independent owner.
 
 ## Gate 9 — Final Report Quality
 
@@ -155,10 +169,33 @@ A phase is closed only when:
 - Required verification passed or failures are documented.
 - QA accepted relevant flows.
 - Security accepted sensitive changes.
+- Privacy/legal/store/data/support/operations owners accepted relevant areas.
 - Remaining risks are known and assigned.
 - The next safe step is exactly one step.
 
-Fail condition: moving to a new phase with unresolved critical defects.
+Fail condition: moving to a new phase with unresolved critical defects or unresolved launch/company-readiness blockers.
+
+## Gate 11 — Company Readiness Gate
+
+Required before any production-readiness or launch claim.
+
+The report must cover:
+
+- Business value and launch scope.
+- App Store/Google Play readiness.
+- Legal pages and user-facing policy links.
+- Privacy and account deletion readiness.
+- Customer support and complaint escalation readiness.
+- Incident response owner and severity model.
+- Backup and recovery plan for durable data.
+- Crash/error monitoring and alerting plan.
+- Official data quality and freshness model.
+- Accessibility blockers.
+- Arabic copy/localization quality.
+- Cost and external-service risk.
+- AI context/decision log update.
+
+Fail condition: claiming launch/production readiness while any item is missing, unverified, or unassigned.
 
 ## Severity Rules
 
@@ -172,6 +209,9 @@ Fail condition: moving to a new phase with unresolved critical defects.
 - Fake UI presented as working.
 - Production path silently using fake data.
 - Broken login/admin access.
+- No account deletion/privacy path for launch-sensitive user data.
+- No rollback/recovery plan for launch.
+- Store/legal blocker likely to reject app submission.
 
 ### High — usually blocks acceptance
 
@@ -180,6 +220,10 @@ Fail condition: moving to a new phase with unresolved critical defects.
 - Incomplete mobile navigation for required flows.
 - RLS or backend authorization ambiguity.
 - Major RTL/layout break.
+- Missing customer support escalation path.
+- Missing crash/error monitoring plan.
+- Official data freshness/source ambiguity.
+- Unbounded recurring external-service cost risk.
 
 ### Medium — may be accepted with documented follow-up
 
@@ -187,6 +231,8 @@ Fail condition: moving to a new phase with unresolved critical defects.
 - Missing analytics.
 - Minor performance concern.
 - Documentation gap that does not affect operation.
+- Non-blocking accessibility issue.
+- Store metadata improvement not required for current phase.
 
 ### Low — does not block acceptance
 
@@ -204,4 +250,4 @@ Use only these final statuses unless the user specifies another format:
 - `BLOCKED`
 - `READY FOR NEXT STEP`
 
-Do not use `production ready` unless launch gates, QA, security, build, deployment, and rollback requirements are all satisfied.
+Do not use `production ready` unless launch gates, QA, security, privacy, legal/store, build, deployment, observability, support, recovery, cost, and rollback requirements are all satisfied.
