@@ -1,21 +1,30 @@
 /**
  * Services Screen — Mawaeedak Mobile
  * 
- * 8 services as specified:
- * 1. احسب هدفك
- * 2. حساب التكاليف
- * 3. ذكرني
- * 4. السفر
- * 5. الدراسة والإجازات
- * 6. الوظائف والأخبار
- * 7. بطاقة اليوم
- * 8. صوتك مسموع
+ * 8 services with full local functionality:
+ * 1. احسب هدفك (GoalsScreen)
+ * 2. حساب التكاليف (CostsScreen)
+ * 3. ذكرني (RemindersScreen)
+ * 4. السفر (TravelScreen)
+ * 5. الدراسة والإجازات (StudyScreen)
+ * 6. الوظائف والأخبار (JobsScreen)
+ * 7. بطاقة اليوم (DailyCardScreen)
+ * 8. صوتك مسموع (FeedbackScreen)
  */
 
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal } from 'react-native';
 import { THEME } from '../constants/theme';
-import { Button } from '../components/Button';
+
+// Import real service screens
+import { GoalsScreen } from './service-screens/GoalsScreen';
+import { CostsScreen } from './service-screens/CostsScreen';
+import { RemindersScreen } from './service-screens/RemindersScreen';
+import { TravelScreen } from './service-screens/TravelScreen';
+import { StudyScreen } from './service-screens/StudyScreen';
+import JobsScreen from './service-screens/JobsScreen';
+import DailyCardScreen from './service-screens/DailyCardScreen';
+import FeedbackScreen from './service-screens/FeedbackScreen';
 
 // Service definitions
 const SERVICES = [
@@ -29,30 +38,6 @@ const SERVICES = [
   { id: 'feedback', icon: '📝', label: 'صوتك مسموع', description: 'اقتراحات وشكاوى' },
 ];
 
-interface ServiceScreenProps {
-  serviceId: string;
-  onClose: () => void;
-}
-
-// Placeholder service screens
-const ServicePlaceholder: React.FC<ServiceScreenProps & { title: string }> = ({
-  serviceId,
-  title,
-  onClose,
-}) => (
-  <View style={styles.placeholderContainer}>
-    <Text style={styles.placeholderIcon}>🔧</Text>
-    <Text style={styles.placeholderTitle}>{title}</Text>
-    <Text style={styles.placeholderDesc}>
-      شاشة {title} قيد الإنشاء
-    </Text>
-    <Text style={styles.placeholderNote}>
-      سيتم ربط البيانات المحلية والتحديثات لاحقاً
-    </Text>
-    <Button title="إغلاق" onPress={onClose} variant="outline" />
-  </View>
-);
-
 export const ServicesScreen: React.FC = () => {
   const [activeService, setActiveService] = useState<string | null>(null);
 
@@ -61,77 +46,69 @@ export const ServicesScreen: React.FC = () => {
     return service?.label || '';
   };
 
+  const renderServiceScreen = () => {
+    switch (activeService) {
+      case 'goals':
+        return <GoalsScreen />;
+      case 'costs':
+        return <CostsScreen />;
+      case 'reminders':
+        return <RemindersScreen />;
+      case 'travel':
+        return <TravelScreen />;
+      case 'study':
+        return <StudyScreen />;
+      case 'jobs':
+        return <JobsScreen />;
+      case 'dailyCard':
+        return <DailyCardScreen />;
+      case 'feedback':
+        return <FeedbackScreen />;
+      default:
+        return null;
+    }
+  };
+
+  // If a service is active, show the service screen
+  if (activeService) {
+    return (
+      <View style={styles.fullScreen}>
+        <View style={styles.modalHeader}>
+          <Text style={styles.modalTitle}>{getServiceTitle(activeService)}</Text>
+          <TouchableOpacity onPress={() => setActiveService(null)}>
+            <Text style={styles.closeButton}>✕</Text>
+          </TouchableOpacity>
+        </View>
+        {renderServiceScreen()}
+      </View>
+    );
+  }
+
+  // Otherwise show the services grid
   return (
-    <>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>الخدمات</Text>
-          <Text style={styles.subtitle}>اختر الخدمة التي تحتاجها</Text>
-        </View>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <View style={styles.header}>
+        <Text style={styles.title}>الخدمات</Text>
+        <Text style={styles.subtitle}>اختر الخدمة التي تحتاجها</Text>
+      </View>
 
-        {/* Services Grid */}
-        <View style={styles.grid}>
-          {SERVICES.map((service) => (
-            <TouchableOpacity
-              key={service.id}
-              style={styles.serviceCard}
-              onPress={() => setActiveService(service.id)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.serviceIcon}>{service.icon}</Text>
-              <Text style={styles.serviceLabel}>{service.label}</Text>
-              <Text style={styles.serviceDesc}>{service.description}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+      <View style={styles.grid}>
+        {SERVICES.map((service) => (
+          <TouchableOpacity
+            key={service.id}
+            style={styles.serviceCard}
+            onPress={() => setActiveService(service.id)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.serviceIcon}>{service.icon}</Text>
+            <Text style={styles.serviceLabel}>{service.label}</Text>
+            <Text style={styles.serviceDesc}>{service.description}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
 
-        {/* Footer */}
-        <Text style={styles.footer}>بسم الله توكلت</Text>
-      </ScrollView>
-
-      {/* Service Modal */}
-      <Modal
-        visible={!!activeService}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setActiveService(null)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>{getServiceTitle(activeService || '')}</Text>
-            <TouchableOpacity onPress={() => setActiveService(null)}>
-              <Text style={styles.closeButton}>✕</Text>
-            </TouchableOpacity>
-          </View>
-          
-          {activeService === 'goals' && (
-            <ServicePlaceholder serviceId="goals" title="احسب هدفك" onClose={() => setActiveService(null)} />
-          )}
-          {activeService === 'costs' && (
-            <ServicePlaceholder serviceId="costs" title="حساب التكاليف" onClose={() => setActiveService(null)} />
-          )}
-          {activeService === 'reminders' && (
-            <ServicePlaceholder serviceId="reminders" title="ذكرني" onClose={() => setActiveService(null)} />
-          )}
-          {activeService === 'travel' && (
-            <ServicePlaceholder serviceId="travel" title="السفر" onClose={() => setActiveService(null)} />
-          )}
-          {activeService === 'study' && (
-            <ServicePlaceholder serviceId="study" title="الدراسة والإجازات" onClose={() => setActiveService(null)} />
-          )}
-          {activeService === 'jobs' && (
-            <ServicePlaceholder serviceId="jobs" title="الوظائف والأخبار" onClose={() => setActiveService(null)} />
-          )}
-          {activeService === 'dailyCard' && (
-            <ServicePlaceholder serviceId="dailyCard" title="بطاقة اليوم" onClose={() => setActiveService(null)} />
-          )}
-          {activeService === 'feedback' && (
-            <ServicePlaceholder serviceId="feedback" title="صوتك مسموع" onClose={() => setActiveService(null)} />
-          )}
-        </View>
-      </Modal>
-    </>
+      <Text style={styles.footer}>بسم الله توكلت</Text>
+    </ScrollView>
   );
 };
 
@@ -145,7 +122,6 @@ const styles = StyleSheet.create({
     paddingBottom: THEME.spacing.xxl,
   },
   
-  // Header
   header: {
     marginBottom: THEME.spacing.lg,
   },
@@ -160,14 +136,12 @@ const styles = StyleSheet.create({
     color: THEME.textSecondary,
   },
   
-  // Grid
   grid: {
     flexDirection: 'row-reverse',
     flexWrap: 'wrap',
     marginHorizontal: -THEME.spacing.xs,
   },
   
-  // Service Card
   serviceCard: {
     width: '48%',
     backgroundColor: THEME.surface,
@@ -196,7 +170,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   
-  // Footer
   footer: {
     textAlign: 'center',
     color: THEME.textSecondary,
@@ -205,8 +178,8 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   
-  // Modal
-  modalContainer: {
+  // Full screen for service
+  fullScreen: {
     flex: 1,
     backgroundColor: THEME.background,
   },
@@ -228,37 +201,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: THEME.textSecondary,
     padding: THEME.spacing.sm,
-  },
-  
-  // Placeholder
-  placeholderContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: THEME.spacing.xl,
-  },
-  placeholderIcon: {
-    fontSize: 64,
-    marginBottom: THEME.spacing.lg,
-  },
-  placeholderTitle: {
-    fontSize: THEME.fontSize.xl,
-    fontWeight: THEME.fontWeight.bold,
-    color: THEME.text,
-    marginBottom: THEME.spacing.sm,
-  },
-  placeholderDesc: {
-    fontSize: THEME.fontSize.md,
-    color: THEME.textSecondary,
-    textAlign: 'center',
-    marginBottom: THEME.spacing.md,
-  },
-  placeholderNote: {
-    fontSize: THEME.fontSize.sm,
-    color: THEME.textMuted,
-    textAlign: 'center',
-    marginBottom: THEME.spacing.xl,
-    paddingHorizontal: THEME.spacing.lg,
   },
 });
 
