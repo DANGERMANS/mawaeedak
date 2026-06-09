@@ -44,6 +44,7 @@ export default function RootLayout() {
           }}
         >
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="daily-card" options={{ title: 'البطاقة اليومية' }} />
         </Stack>
       </QueryClientProvider>
     </SafeAreaProvider>

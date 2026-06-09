@@ -13,6 +13,7 @@
 
 import { View, Text, StyleSheet, ScrollView, Pressable, Switch, Alert } from 'react-native';
 import { I18nManager } from 'react-native';
+import { useRouter } from 'expo-router';
 
 // Theme colors
 const THEME = {
@@ -47,16 +48,19 @@ const MENU_SECTIONS = [
   {
     title: 'المزيد',
     items: [
-      { id: 6, icon: '📤', title: 'مشاركة التطبيق', subtitle: 'ادعُ أصدقاءك', type: 'action' },
-      { id: 7, icon: '📜', title: 'سياسة الخصوصية', subtitle: 'اقرأ سياسة الخصوصية', type: 'navigate' },
-      { id: 8, icon: '📋', title: 'الشروط والأحكام', subtitle: 'شروط استخدام التطبيق', type: 'navigate' },
-      { id: 9, icon: '💬', title: 'المساعدة والدعم', subtitle: 'تواصل معنا', type: 'navigate' },
-      { id: 10, icon: 'ℹ️', title: 'عن التطبيق', subtitle: 'الإصدار 1.0.0', type: 'navigate' },
+      { id: 6, icon: '🎴', title: 'البطاقة اليومية', subtitle: 'شارك يومك مع الآخرين', type: 'navigate', screen: 'daily-card' },
+      { id: 7, icon: '📤', title: 'مشاركة التطبيق', subtitle: 'ادعُ أصدقاءك', type: 'action' },
+      { id: 8, icon: '📜', title: 'سياسة الخصوصية', subtitle: 'اقرأ سياسة الخصوصية', type: 'navigate' },
+      { id: 9, icon: '📋', title: 'الشروط والأحكام', subtitle: 'شروط استخدام التطبيق', type: 'navigate' },
+      { id: 10, icon: '💬', title: 'المساعدة والدعم', subtitle: 'تواصل معنا', type: 'navigate' },
+      { id: 11, icon: 'ℹ️', title: 'عن التطبيق', subtitle: 'الإصدار 1.0.0', type: 'navigate' },
     ],
   },
 ];
 
 export default function MoreScreen() {
+  const router = useRouter();
+
   const handleLogout = () => {
     Alert.alert(
       'تسجيل الخروج',
@@ -68,9 +72,11 @@ export default function MoreScreen() {
     );
   };
 
-  const handleMenuPress = (item: { id: number; title: string; type: string }) => {
-    if (item.type === 'action') {
-      if (item.id === 6) {
+  const handleMenuPress = (item: { id: number; title: string; type: string; screen?: string }) => {
+    if (item.type === 'navigate' && item.screen) {
+      router.replace('/daily-card' as any);
+    } else if (item.type === 'action') {
+      if (item.id === 7) {
         Alert.alert('مشاركة التطبيق', 'رابط المشاركة: mawaeedak.app');
       }
     }
