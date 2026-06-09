@@ -70,6 +70,7 @@ export interface CostItem {
   name: string;
   cost: number;
   status: 'unpaid' | 'partial' | 'paid' | 'scheduled';
+  paidAmount?: number;
   dueDate?: string;
   paidAt?: string;
   createdAt: string;
