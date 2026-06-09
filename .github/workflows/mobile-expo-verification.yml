@@ -50,10 +50,6 @@ jobs:
         run: npm run doctor
         working-directory: mobile
       
-      - name: Expo Export Web
-        run: npx expo export --platform web
-        working-directory: mobile
-      
       - name: Build Android (optional - EAS)
         if: github.event_name == 'push'
         run: |
