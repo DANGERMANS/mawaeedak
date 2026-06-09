@@ -6,6 +6,7 @@ import { useGatewayFinancialCountdown } from "@/hooks/useGatewayData";
 import { formatHijriDate, formatGregorianDate, getDayName } from "@/lib/utils";
 import { useTimeFormat } from "@/hooks/useTimeFormat";
 import desertHeroImg from "@assets/desert-hero.png";
+import dailyCardBg from "@assets/daily-card.png";
 
 const GOLD = "#C9A063";
 const BROWN = "#8A6B3D";
@@ -174,11 +175,11 @@ export default function DailyCardPreview({ message }: DailyCardPreviewProps) {
         margin: "0 auto",
       }}
     >
-      {/* Background - Saudi architecture on right */}
+      {/* Background - Daily Card image on right */}
       <div 
-        className="absolute top-0 right-0 w-2/5 h-full opacity-[0.08] pointer-events-none"
+        className="absolute top-0 right-0 w-2/5 h-full opacity-[0.12] pointer-events-none"
         style={{
-          backgroundImage: `url(${desertHeroImg})`,
+          backgroundImage: `url(${dailyCardBg})`,
           backgroundSize: "cover",
           backgroundPosition: "center right",
         }}
