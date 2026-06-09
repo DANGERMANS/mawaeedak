@@ -151,6 +151,7 @@ export default function ServicesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingBottom: 120,
     backgroundColor: THEME.background,
     direction: I18nManager.isRTL ? 'rtl' : 'ltr',
   },
@@ -273,6 +274,7 @@ const styles = StyleSheet.create({
   },
   quickLinkContent: {
     flex: 1,
+    paddingBottom: 120,
   },
   quickLinkTitle: {
     fontSize: 16,

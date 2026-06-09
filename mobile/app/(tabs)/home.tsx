@@ -174,11 +174,13 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingBottom: 120,
     backgroundColor: THEME.background,
     direction: I18nManager.isRTL ? 'rtl' : 'ltr',
   },
   loadingContainer: {
     flex: 1,
+    paddingBottom: 120,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: THEME.background,
@@ -378,6 +380,7 @@ const styles = StyleSheet.create({
   },
   appointmentInfo: {
     flex: 1,
+    paddingBottom: 120,
   },
   appointmentTitle: {
     fontSize: 16,

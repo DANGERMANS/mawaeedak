@@ -72,6 +72,7 @@ export default function MoreScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingBottom: 120,
     backgroundColor: CREAM,
     direction: I18nManager.isRTL ? 'rtl' : 'ltr',
   },
@@ -117,6 +118,7 @@ const styles = StyleSheet.create({
   },
   cardContent: {
     flex: 1,
+    paddingBottom: 120,
   },
   cardTitle: {
     fontSize: 18,
