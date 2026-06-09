@@ -13,6 +13,17 @@ import { Select } from '../../components/Input';
 import { costProjectsStorage, costItemsStorage } from '../../storage/LocalStorage';
 import type { CostProject, CostItem } from '../../types/app';
 
+const toSafeAmount = (value: number | undefined, max: number) => {
+  const amount = Number.isFinite(value ?? NaN) ? Number(value) : 0;
+  return Math.max(0, Math.min(amount, max));
+};
+
+const getPaidAmountForItem = (item: CostItem) => {
+  if (item.status === 'paid') return item.cost;
+  if (item.status === 'partial') return toSafeAmount(item.paidAmount, item.cost);
+  return 0;
+};
+
 export const CostsScreen: React.FC = () => {
   const [projects, setProjects] = useState<CostProject[]>([]);
   const [items, setItems] = useState<CostItem[]>([]);
@@ -22,7 +33,6 @@ export const CostsScreen: React.FC = () => {
   const [editingProject, setEditingProject] = useState<CostProject | null>(null);
   const [editingItem, setEditingItem] = useState<CostItem | null>(null);
   
-  // Form states
   const [projectName, setProjectName] = useState('');
   const [itemName, setItemName] = useState('');
   const [itemCost, setItemCost] = useState('');
@@ -43,8 +53,8 @@ export const CostsScreen: React.FC = () => {
 
   const getProjectItems = (projectId: string) => items.filter(i => i.projectId === projectId);
   const getProjectTotal = (projectId: string) => getProjectItems(projectId).reduce((sum, i) => sum + i.cost, 0);
-  const getProjectPaid = (projectId: string) => getProjectItems(projectId).filter(i => i.status === 'paid' || i.status === 'partial').reduce((sum, i) => sum + (i.paidAt ? i.cost : 0), 0);
-  const getProjectRemaining = (projectId: string) => getProjectTotal(projectId) - getProjectPaid(projectId);
+  const getProjectPaid = (projectId: string) => getProjectItems(projectId).reduce((sum, item) => sum + getPaidAmountForItem(item), 0);
+  const getProjectRemaining = (projectId: string) => Math.max(0, getProjectTotal(projectId) - getProjectPaid(projectId));
 
   const resetProjectForm = () => { setProjectName(''); setEditingProject(null); };
   const resetItemForm = () => { setItemName(''); setItemCost(''); setItemStatus('unpaid'); setItemPaidAmount(''); setItemDueDate(''); setEditingItem(null); };
@@ -71,12 +81,15 @@ export const CostsScreen: React.FC = () => {
   const handleSaveItem = async () => {
     if (!itemName.trim() || !selectedProject) { Alert.alert('خطأ', 'الرجاء إدخال اسم البند'); return; }
     const cost = parseFloat(itemCost) || 0;
+    const requestedPaidAmount = parseFloat(itemPaidAmount) || 0;
+    const safePaidAmount = itemStatus === 'paid' ? cost : itemStatus === 'partial' ? toSafeAmount(requestedPaidAmount, cost) : undefined;
     const itemData = {
       projectId: selectedProject.id,
       name: itemName.trim(),
       cost,
       status: itemStatus,
-      paidAmount: itemStatus === 'partial' ? parseFloat(itemPaidAmount) || 0 : itemStatus === 'paid' ? cost : undefined,
+      paidAmount: safePaidAmount,
+      paidAt: itemStatus === 'paid' ? new Date().toISOString() : undefined,
       dueDate: itemDueDate || undefined,
     };
     if (editingItem) {
@@ -94,10 +107,20 @@ export const CostsScreen: React.FC = () => {
     await loadData();
   };
 
+  const handleOpenEditItem = (item: CostItem) => {
+    setEditingItem(item);
+    setItemName(item.name);
+    setItemCost(String(item.cost));
+    setItemStatus(item.status);
+    setItemPaidAmount(item.paidAmount ? String(item.paidAmount) : '');
+    setItemDueDate(item.dueDate || '');
+    setShowItemModal(true);
+  };
+
   const handleMarkPaid = (item: CostItem) => {
     Alert.alert('تحديد كمدفوع', `هل تخصم ${item.cost} من المتبقي؟`, [
       { text: 'إلغاء', style: 'cancel' },
-      { text: 'نعم', onPress: async () => { await costItemsStorage.update(item.id, { status: 'paid', paidAt: new Date().toISOString() }); await loadData(); } },
+      { text: 'نعم', onPress: async () => { await costItemsStorage.update(item.id, { status: 'paid', paidAmount: item.cost, paidAt: new Date().toISOString() }); await loadData(); } },
     ]);
   };
 
@@ -141,23 +164,29 @@ export const CostsScreen: React.FC = () => {
 
                 {isExpanded && projectItems.length > 0 && (
                   <View style={styles.itemsList}>
-                    {projectItems.map((item) => (
-                      <View key={item.id} style={[styles.itemRow, item.status === 'paid' && styles.itemPaid]}>
-                        <View style={styles.itemInfo}>
-                          <Text style={[styles.itemName, item.status === 'paid' && styles.itemNamePaid]}>{item.name}</Text>
-                          <Text style={styles.itemCost}>{item.cost.toLocaleString()} ر.س</Text>
+                    {projectItems.map((item) => {
+                      const itemPaidAmount = getPaidAmountForItem(item);
+                      const itemRemaining = Math.max(0, item.cost - itemPaidAmount);
+                      return (
+                        <View key={item.id} style={[styles.itemRow, item.status === 'paid' && styles.itemPaid]}>
+                          <View style={styles.itemInfo}>
+                            <Text style={[styles.itemName, item.status === 'paid' && styles.itemNamePaid]}>{item.name}</Text>
+                            <Text style={styles.itemCost}>{item.cost.toLocaleString()} ر.س</Text>
+                            {item.status === 'partial' && <Text style={styles.itemSubText}>مدفوع: {itemPaidAmount.toLocaleString()} | متبقي: {itemRemaining.toLocaleString()}</Text>}
+                          </View>
+                          <View style={styles.itemStatus}>
+                            <Text style={[styles.statusBadge, styles[`status_${item.status}`]]}>
+                              {item.status === 'unpaid' ? 'غير مدفوع' : item.status === 'partial' ? 'جزئي' : item.status === 'paid' ? '✓ مدفوع' : 'مجدول'}
+                            </Text>
+                          </View>
+                          <View style={styles.itemActions}>
+                            <TouchableOpacity onPress={() => handleOpenEditItem(item)}><Text style={styles.actionBtn}>✏️</Text></TouchableOpacity>
+                            {item.status !== 'paid' && <TouchableOpacity onPress={() => handleMarkPaid(item)}><Text style={styles.actionBtn}>✓</Text></TouchableOpacity>}
+                            <TouchableOpacity onPress={() => handleDeleteItem(item)}><Text style={styles.actionBtn}>🗑️</Text></TouchableOpacity>
+                          </View>
                         </View>
-                        <View style={styles.itemStatus}>
-                          <Text style={[styles.statusBadge, styles[`status_${item.status}`]]}>
-                            {item.status === 'unpaid' ? 'غير مدفوع' : item.status === 'partial' ? 'جزئي' : item.status === 'paid' ? '✓ مدفوع' : 'مجدول'}
-                          </Text>
-                        </View>
-                        <View style={styles.itemActions}>
-                          {item.status !== 'paid' && <TouchableOpacity onPress={() => handleMarkPaid(item)}><Text style={styles.actionBtn}>✓</Text></TouchableOpacity>}
-                          <TouchableOpacity onPress={() => handleDeleteItem(item)}><Text style={styles.actionBtn}>🗑️</Text></TouchableOpacity>
-                        </View>
-                      </View>
-                    ))}
+                      );
+                    })}
                   </View>
                 )}
               </Card>
@@ -166,7 +195,6 @@ export const CostsScreen: React.FC = () => {
         )}
       </ScrollView>
 
-      {/* Project Modal */}
       <Modal visible={showProjectModal} animationType="slide" presentationStyle="pageSheet">
         <View style={styles.modalContainer}>
           <View style={styles.modalHeader}>
@@ -180,7 +208,6 @@ export const CostsScreen: React.FC = () => {
         </View>
       </Modal>
 
-      {/* Item Modal */}
       <Modal visible={showItemModal} animationType="slide" presentationStyle="pageSheet">
         <View style={styles.modalContainer}>
           <View style={styles.modalHeader}>
@@ -224,6 +251,7 @@ const styles = StyleSheet.create({
   itemName: { fontSize: THEME.fontSize.md, color: THEME.text },
   itemNamePaid: { textDecorationLine: 'line-through' },
   itemCost: { fontSize: THEME.fontSize.sm, color: THEME.textSecondary, marginTop: 2 },
+  itemSubText: { fontSize: THEME.fontSize.xs, color: THEME.textMuted, marginTop: 2 },
   itemStatus: { marginHorizontal: 8 },
   statusBadge: { fontSize: THEME.fontSize.xs, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
   status_unpaid: { backgroundColor: THEME.error + '20', color: THEME.error },
