@@ -4,7 +4,7 @@
  * Provides:
  * - RTL support for Arabic
  * - QueryClient for data fetching
- * - Error boundary
+ * - Tab navigation
  * - Status bar styling
  */
 
@@ -42,7 +42,9 @@ export default function RootLayout() {
             headerShown: false,
             contentStyle: { backgroundColor: '#FAF7F2' }
           }}
-        />
+        >
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        </Stack>
       </QueryClientProvider>
     </SafeAreaProvider>
   );
