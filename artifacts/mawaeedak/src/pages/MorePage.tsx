@@ -8,6 +8,7 @@ import { MawaeedakLogo } from "@/components/layout/TopBar";
 import { ConfirmDialog } from "@/components/layout/ConfirmDialog";
 import { showTopNotification } from "@/components/layout/TopNotificationBanner";
 import { useStore } from "@/hooks/useStore";
+import { authSignOut } from "@/lib/auth";
 
 function MoreRow({
   icon: Icon,
@@ -42,7 +43,6 @@ function MoreRow({
   );
 }
 
-// Daily Card Row - Card style for consistency with CentersPage
 function DailyCardRow({ onClick }: { onClick: () => void }) {
   return (
     <button
@@ -55,7 +55,7 @@ function DailyCardRow({ onClick }: { onClick: () => void }) {
       }}
     >
       <div className="flex items-center gap-4">
-        <div 
+        <div
           className="flex h-14 w-14 items-center justify-center rounded-[16px]"
           style={{ background: "linear-gradient(135deg, #C9A063, #A78042)" }}
         >
@@ -84,6 +84,7 @@ export default function MorePage() {
 
   const shareApp = async () => {
     const url = window.location.origin;
+
     if (navigator.share) {
       try {
         await navigator.share({ title: "مواعيدك", text: "كل مواعيدك في مكان واحد", url });
@@ -102,11 +103,12 @@ export default function MorePage() {
   };
 
   const logout = async () => {
-    const { authSignOut } = await import("@/lib/auth");
     await authSignOut().catch(() => {});
+
     localStorage.removeItem("app-user");
     localStorage.removeItem("mawaeedak_onboarded");
     sessionStorage.removeItem("mawaeedak_demo_session");
+
     setUser({
       id: "",
       name: "",
@@ -118,6 +120,7 @@ export default function MorePage() {
       onboardingComplete: false,
       interests: [],
     });
+
     showTopNotification("تم تسجيل الخروج", "success");
     setLocation("/");
   };
@@ -142,7 +145,6 @@ export default function MorePage() {
           </div>
         </section>
 
-        {/* Daily Card Section - Card Style */}
         <section className="px-1">
           <DailyCardRow onClick={() => setLocation("/daily-card")} />
         </section>
