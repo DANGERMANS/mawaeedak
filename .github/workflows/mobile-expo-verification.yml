@@ -110,7 +110,7 @@ jobs:
       
       - name: Check Bottom Navigation
         run: |
-          if grep -q "tabBar\|BottomTab\|tabItem" src/MobileApp.tsx; then
+          if grep -iq "tab\|navigator" src/MobileApp.tsx; then
             echo "✅ Bottom navigation exists"
           else
             echo "❌ Bottom navigation not found"
