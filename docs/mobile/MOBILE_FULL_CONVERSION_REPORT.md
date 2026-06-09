@@ -106,7 +106,7 @@ mobile/
   6. 💼 الوظائف والأخبار
   7. 🎴 بطاقة اليوم
   8. 📝 صوتك مسموع
-- كل خدمة تفتح Modal placeholder
+- كل خدمة تفتح شاشة فعلية داخل واجهة الخدمة وليست placeholder
 
 ### ✅ التقويم (CalendarScreen)
 - عرض شهري مع أيام الأسبوع
@@ -220,7 +220,9 @@ USER_PROFILE: 'mawaeedak_user_v1'
 |---|---|
 | `npm install` | ✅ Success (826 packages) |
 | `npm run typecheck` | ✅ Passed (0 errors) |
-| `npm run doctor` | ⏸️ Skipped (timeout) |
+| `npm run doctor` | ✅ Passed (18/18) |
+| `npx expo start --clear` | ✅ Metro starts; local status endpoint reports running |
+| Security grep | ✅ No service_role, secrets, WebView, or web localStorage in `mobile/src`/`mobile/app` |
 
 ### TypeScript Errors Fixed
 
@@ -266,25 +268,25 @@ mobile/src/
 
 ## 10. النواقص
 
-### Phase 3-8 Placeholders
+### Phase 3-8 Local Service Status
 
-| الخدمة | الحالة | المطلوب |
+| الخدمة | الحالة | الدليل |
 |---|---|---|
-| احسب هدفك | Placeholder | شاشة إضافة/تعديل/حذف الأهداف |
-| حساب التكاليف | Placeholder | شاشة مشاريع وبنود |
-| ذكرني | Placeholder | شاشة تذكيرات + expo-notifications |
-| السفر | Placeholder | شاشة رحلات + checklist |
-| الدراسة والإجازات | Placeholder | تقويم دراسي + إجازات |
-| الوظائف والأخبار | Placeholder | قائمة + فلترة |
-| بطاقة اليوم | Placeholder | مشاركة بطاقة |
-| صوتك مسموع | Placeholder | نموذج اقتراحات |
+| احسب هدفك | Functional local screen | إضافة/تحديث/حذف أهداف عبر `goalsStorage` |
+| حساب التكاليف | Functional local screen | مشاريع وبنود وتلخيص مدفوع/متبق عبر `costProjectsStorage` و`costItemsStorage` |
+| ذكرني | Functional local screen | حفظ تذكيرات محلية مع توضيح أن الإشعارات الرسمية بانتظار التفعيل |
+| السفر | Functional local screen | رحلات وقائمة تحقق محلية عبر `tripsStorage` |
+| الدراسة والإجازات | Functional local screen | أحداث دراسة/إجازات محلية مع banner للربط الرسمي |
+| الوظائف والأخبار | Pending official feed screen | بحث/حالات فارغة بدون أخبار أو وظائف وهمية |
+| بطاقة اليوم | Pending admin source screen | عرض pending ومشاركة مؤجلة بدون محتوى رسمي وهمي |
+| صوتك مسموع | Functional local screen | حفظ مقترحات محلياً مع توضيح أن الإرسال الرسمي مؤجل |
 
 ### Technical
 
 | الموضوع | الحالة | المطلوب |
 |---|---|---|
 | expo-notifications | Not configured | إعدادات الإشعارات |
-| Hijri date conversion | Placeholder | مكتبة التحويل الهجري |
+| Hijri date conversion | Pending official/approved source | لا يعرض تاريخاً هجرياً ثابتاً أو وهمياً |
 | Time formatting | Basic | دعم 12h/24h كامل |
 
 ---
@@ -294,16 +296,16 @@ mobile/src/
 | المخاطرة | المستوى | Mitigation |
 |---|---|---|
 | LocalStorage قد يمتلئ | منخفض | مراعاة حدود التخزين |
-| Placeholders كثيرة | متوسط | واضح للمستخدم "بانتظار الربط" |
+| مصادر رسمية مؤجلة | متوسط | واضح للمستخدم "بانتظار الربط" بدون بيانات وهمية |
 | لا اختبارات E2E | منخفض | يمكن إضافتها لاحقاً |
 
 ---
 
 ## 12. Next Safe Step
 
-**PHASE 8: إكمال الخدمات المحلية**
+**PR readiness gate**
 
-الخطوة التالية هي إكمال الشاشات الوظيفية للخدمات المحلية (Goals, Costs, Reminders, Travel) مع حفظ محلي كامل.
+الخطوة التالية هي اعتماد PR بعد نجاح GitHub Actions المطلوبة وعدم وجود تعارضات أو ملفات مؤقتة.
 
 **NOT:** لا تربط Supabase/API — هذا مؤجل لـ Phase 11.
 
@@ -321,9 +323,9 @@ mobile/src/
 | PHASE 5 | ✅ DONE | Services Screen (8 services) |
 | PHASE 6 | ✅ DONE | Calendar Screen |
 | PHASE 7 | ✅ DONE | More Screen |
-| PHASE 8 | 🔄 PARTIAL | Local Data Layer (working) |
+| PHASE 8 | ✅ DONE | Local Data Layer for current local-only scope |
 | PHASE 9 | ✅ DONE | Visual/RTL (theme applied) |
-| PHASE 10 | ✅ DONE | QA (typecheck passed) |
+| PHASE 10 | ✅ DONE | QA (typecheck, doctor, Metro start, security grep) |
 | PHASE 11 | ⏸️ PENDING | Real Linking Plan only |
 
 ---

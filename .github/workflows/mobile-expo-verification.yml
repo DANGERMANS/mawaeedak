@@ -10,13 +10,13 @@ on:
       - 'codex/**'
     paths:
       - 'mobile/**'
-      - '.github/workflows/mobile/**'
+      - '.github/workflows/mobile-expo-verification.yml'
   pull_request:
     branches:
       - main
     paths:
       - 'mobile/**'
-      - '.github/workflows/mobile/**'
+      - '.github/workflows/mobile-expo-verification.yml'
 
 concurrency:
   group: mobile-${{ github.ref }}
@@ -49,6 +49,9 @@ jobs:
       - name: Expo Doctor
         run: npm run doctor
         working-directory: mobile
+
+      # Mawaeedak mobile scope is native iOS/Android. Web export is not a
+      # required gate until web support is explicitly added to the product.
       
       - name: Build Android (optional - EAS)
         if: github.event_name == 'push'
@@ -188,7 +191,8 @@ jobs:
           echo "✅ Phase 2: Quality Checks - COMPLETE"
           echo "✅ Phase 3: Security Scan - COMPLETE"
           echo ""
-          echo "VERDICT: Mobile is PRODUCTION READY"
+          echo "VERDICT: Mobile verification gates passed"
+          echo "Production readiness still depends on native release credentials and deferred official data integrations."
           echo ""
           echo "Next Steps:"
           echo "1. Run expo prebuild for native builds"
@@ -198,7 +202,8 @@ jobs:
 
 # Summary
 # This workflow verifies:
-# 1. npm install, typecheck, doctor, export work
+# 1. npm install, typecheck, and doctor pass
+# Web export is intentionally not a required gate for the current native mobile scope.
 # 2. MobileApp.tsx exists and is functional
 # 3. index.tsx doesn't return null
 # 4. RTL is enabled

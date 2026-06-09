@@ -55,8 +55,8 @@ export const HomeScreen: React.FC = () => {
     day: 'numeric',
   });
   
-  // Hijri date (placeholder - will use library later)
-  const hijriDate = '١٥ رمضان ١٤٤٥'; // Placeholder
+  // Hijri date stays pending until an approved conversion/source is wired.
+  const hijriDate = 'بانتظار اعتماد التاريخ الهجري';
 
   return (
     <ScrollView
