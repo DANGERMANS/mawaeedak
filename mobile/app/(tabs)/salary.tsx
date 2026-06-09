@@ -202,11 +202,13 @@ export default function SalaryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingBottom: 120,
     backgroundColor: THEME.background,
     direction: I18nManager.isRTL ? 'rtl' : 'ltr',
   },
   loadingContainer: {
     flex: 1,
+    paddingBottom: 120,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: THEME.background,
@@ -280,6 +282,7 @@ const styles = StyleSheet.create({
   },
   salaryInfo: {
     flex: 1,
+    paddingBottom: 120,
   },
   salaryTitle: {
     fontSize: 16,
@@ -374,6 +377,7 @@ const styles = StyleSheet.create({
   },
   supportInfo: {
     flex: 1,
+    paddingBottom: 120,
   },
   supportName: {
     fontSize: 15,
@@ -450,6 +454,7 @@ const styles = StyleSheet.create({
   // Modal
   modalOverlay: {
     flex: 1,
+    paddingBottom: 120,
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'flex-end',
   },
@@ -495,6 +500,7 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     flex: 1,
+    paddingBottom: 120,
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
@@ -508,6 +514,7 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     flex: 1,
+    paddingBottom: 120,
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',

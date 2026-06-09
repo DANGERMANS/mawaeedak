@@ -1,31 +1,27 @@
 /**
  * Daily Card Screen — Share your daily card
  * 
- * Features:
- * - Daily greeting message
- * - Hijri & Gregorian dates
- * - Prayer times with next prayer highlight
- * - Financial countdown (salary, support)
- * - Copy text / Share / Save image
+ * Premium design matching web DailyCardPreview exactly:
+ * - Ivory gradient background with gold accents
+ * - Background pattern with daily-card.png
+ * - Golden corner decorations
+ * - All cards with ivory/white with gold borders
+ * - Next prayer highlighted with gold background
+ * - RTL aligned
  */
 
-import { useMemo, useRef, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Alert, Share, Platform } from 'react-native';
+import { useMemo } from 'react';
+import { View, Text, StyleSheet, ScrollView, Pressable, Alert, Share, Image, useWindowDimensions } from 'react-native';
 import { I18nManager } from 'react-native';
 
-// Theme colors - matching web design
-const THEME = {
-  primary: '#C9A063',
-  secondary: '#8A6B3D',
-  background: '#FAF7F2',
-  surface: '#FFFFFF',
-  text: '#2F2B25',
-  textSecondary: '#6F6557',
-  border: '#DCD7CF',
-  error: '#B45A4D',
-  success: '#7A9A74',
-  lightGold: 'rgba(201,160,99,0.12)',
-};
+// Theme colors - exact match with web
+const GOLD = '#C9A063';
+const BROWN = '#8A6B3D';
+const INK = '#2F2B25';
+const CREAM = '#FAF7F2';
+const SURFACE = '#FFFFFF';
+const LIGHT_GOLD = 'rgba(201,160,99,0.12)';
+const BORDER_GOLD = 'rgba(201,160,99,0.25)';
 
 // Saudi-based daily messages pool
 const DAILY_MESSAGES = [
@@ -54,7 +50,6 @@ const DAILY_MESSAGES = [
   "أحسن إلى الناس تستعبد قلوبهم.",
 ];
 
-// Prayer times data
 const PRAYER_ORDER = [
   { key: 'fajr', label: 'الفجر' },
   { key: 'sunrise', label: 'الشروق' },
@@ -64,7 +59,12 @@ const PRAYER_ORDER = [
   { key: 'isha', label: 'العشاء' },
 ];
 
-// Get today's message
+const FINANCIAL_EVENTS = [
+  { name: 'الراتب', days: 12, icon: '💰' },
+  { name: 'حساب المواطن', days: 5, icon: '👤' },
+  { name: 'الدعم السكني', days: 18, icon: '🏠' },
+];
+
 function getTodayMessage(): string {
   const saudiDate = new Date().toLocaleString('en-US', { timeZone: 'Asia/Riyadh' });
   const today = new Date(saudiDate);
@@ -72,7 +72,6 @@ function getTodayMessage(): string {
   return DAILY_MESSAGES[dayOfYear % DAILY_MESSAGES.length];
 }
 
-// Format time to 12-hour format
 function formatTime(time: string): string {
   const [h, m] = time.split(':').map(Number);
   const period = h >= 12 ? 'م' : 'ص';
@@ -80,25 +79,21 @@ function formatTime(time: string): string {
   return `${hour}:${m.toString().padStart(2, '0')} ${period}`;
 }
 
-// Get Hijri date
 function getHijriDate(): string {
   const options: Intl.DateTimeFormatOptions = { calendar: 'islamic', day: 'numeric', month: 'long', year: 'numeric' };
   return new Date().toLocaleDateString('ar-SA', options);
 }
 
-// Get Gregorian date
 function getGregorianDate(): string {
   const options: Intl.DateTimeFormatOptions = { calendar: 'gregory', day: 'numeric', month: 'long', year: 'numeric' };
   return new Date().toLocaleDateString('ar-SA', options);
 }
 
-// Get day name
 function getDayName(): string {
   return new Date().toLocaleDateString('ar-SA', { weekday: 'long' });
 }
 
-// Mock prayer times
-const PRAYER_TIMES = {
+const PRAYER_TIMES: Record<string, string> = {
   fajr: '04:30',
   sunrise: '05:45',
   dhuhr: '11:45',
@@ -107,29 +102,24 @@ const PRAYER_TIMES = {
   isha: '20:00',
 };
 
-// Mock financial events
-const FINANCIAL_EVENTS = [
-  { name: 'الراتب', days: 12, icon: '💰' },
-  { name: 'حساب المواطن', days: 5, icon: '👤' },
-  { name: 'الدعم السكني', days: 18, icon: '🏠' },
-];
-
-// Get next prayer
 function getNextPrayer() {
   const now = new Date();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
   
   for (const prayer of PRAYER_ORDER) {
     if (prayer.key === 'sunrise') continue;
-    const [h, m] = PRAYER_TIMES[prayer.key as keyof typeof PRAYER_TIMES].split(':').map(Number);
+    const [h, m] = PRAYER_TIMES[prayer.key].split(':').map(Number);
     if (h * 60 + m > currentMinutes) {
-      return { ...prayer, time: PRAYER_TIMES[prayer.key as keyof typeof PRAYER_TIMES] };
+      return { ...prayer, time: PRAYER_TIMES[prayer.key] };
     }
   }
   return { ...PRAYER_ORDER[0], time: PRAYER_TIMES.fajr };
 }
 
 export default function DailyCardScreen() {
+  const { width } = useWindowDimensions();
+  const cardWidth = Math.min(width - 32, 380);
+  
   const message = useMemo(() => getTodayMessage(), []);
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
@@ -139,6 +129,7 @@ export default function DailyCardScreen() {
 
   const handleCopy = async () => {
     const text = `✦ مواعيدك ✦
+
 ${getDayName()}
 ${getHijriDate()} هـ
 ${getGregorianDate()} م
@@ -152,7 +143,8 @@ ${message}
 مواعيدك — منصة تجمع وقتك، راتبك، دعمك، وأهم مواعيدك`;
 
     try {
-      await globalThis.navigator?.clipboard?.writeText(text);
+      // @ts-ignore
+      await navigator?.clipboard?.writeText(text);
       Alert.alert('تم', 'تم نسخ البطاقة بنجاح');
     } catch {
       Alert.alert('خطأ', 'فشل نسخ البطاقة');
@@ -161,6 +153,7 @@ ${message}
 
   const handleShare = async () => {
     const text = `✦ مواعيدك ✦
+
 ${getDayName()}
 ${getHijriDate()} هـ
 ${getGregorianDate()} م
@@ -190,100 +183,127 @@ ${message}
         <Text style={styles.headerTitle}>البطاقة اليومية</Text>
       </View>
 
-      {/* Main Card */}
-      <View style={styles.card}>
-        {/* Badge */}
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>✦ بطاقة يومية ✦</Text>
+      {/* Main Card - exact match with web */}
+      <View style={[styles.card, { width: cardWidth }]}>
+        {/* Background pattern */}
+        <Image 
+          source={require('@/src/daily-card.png')}
+          style={styles.backgroundPattern}
+          resizeMode="cover"
+        />
+        
+        {/* Golden corner decorations */}
+        <View style={[styles.cornerTopLeft, styles.cornerDecoration]} />
+        <View style={[styles.cornerBottomRight, styles.cornerDecoration]} />
+        
+        {/* Lantern top-left */}
+        <View style={styles.lantern}>
+          <Text style={styles.lanternText}>🏮</Text>
         </View>
 
-        {/* Logo */}
-        <View style={styles.logoSection}>
-          <Text style={styles.logoIcon}>✦</Text>
-          <Text style={styles.logoTitle}>مواعيدك</Text>
-          <Text style={styles.logoSubtitle}>كل مواعيدك.. في مكان واحد</Text>
-          <View style={styles.divider} />
-        </View>
-
-        {/* Message Banner */}
-        <View style={styles.messageBanner}>
-          <Text style={styles.messageQuote}>❝</Text>
-          <Text style={styles.messageGreeting}>{greeting}</Text>
-          <Text style={styles.messageText}>{message}</Text>
-          <Text style={styles.messageReminder}>واذكروا الله ذكراً كثيراً</Text>
-        </View>
-
-        {/* Date Card */}
-        <View style={styles.dateCard}>
-          <Text style={styles.dateIcon}>📅</Text>
-          <Text style={styles.dateDay}>{getDayName()}</Text>
-          <Text style={styles.dateText}>{getHijriDate()} هـ</Text>
-          <Text style={styles.dateText}>{getGregorianDate()} م</Text>
-        </View>
-
-        {/* Prayer Times Card */}
-        <View style={styles.prayerCard}>
-          <View style={styles.prayerHeader}>
-            <Text style={styles.prayerIcon}>🕌</Text>
-            <Text style={styles.prayerTitle}>مواقيت الصلاة</Text>
-          </View>
-          
-          <View style={styles.prayerGrid}>
-            {PRAYER_ORDER.filter(p => p.key !== 'sunrise').map((prayer) => {
-              const isNext = nextPrayer.key === prayer.key;
-              return (
-                <View
-                  key={prayer.key}
-                  style={[
-                    styles.prayerItem,
-                    isNext && styles.prayerItemActive,
-                  ]}
-                >
-                  <View style={[styles.prayerDot, isNext && styles.prayerDotActive]} />
-                  <Text style={[styles.prayerLabel, isNext && styles.prayerLabelActive]}>
-                    {prayer.label}
-                  </Text>
-                  <Text style={[styles.prayerTime, isNext && styles.prayerTimeActive]}>
-                    {formatTime(PRAYER_TIMES[prayer.key as keyof typeof PRAYER_TIMES])}
-                  </Text>
-                </View>
-              );
-            })}
+        {/* Content */}
+        <View style={styles.content}>
+          {/* 1. Badge */}
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>✦ بطاقة يومية ✦</Text>
           </View>
 
-          {nextPrayer && (
-            <View style={styles.nextPrayerBanner}>
-              <Text style={styles.nextPrayerText}>
-                الصلاة القادمة: {nextPrayer.label} — {formatTime(nextPrayer.time)}
-              </Text>
+          {/* 2. Logo */}
+          <View style={styles.logoSection}>
+            <Text style={styles.logoIcon}>✦</Text>
+            <Text style={styles.logoTitle}>مواعيدك</Text>
+            <Text style={styles.logoSubtitle}>كل مواعيدك.. في مكان واحد</Text>
+            <View style={styles.divider} />
+          </View>
+
+          {/* 3. Message Banner with background image */}
+          <View style={styles.messageBanner}>
+            <Image 
+              source={require('@/src/daily-card.png')}
+              style={styles.bannerBackground}
+              resizeMode="cover"
+            />
+            <View style={styles.bannerOverlay} />
+            <View style={styles.bannerContent}>
+              <Text style={styles.quoteIcon}>❝</Text>
+              <Text style={styles.messageGreeting}>{greeting}</Text>
+              <Text style={styles.messageText}>{message}</Text>
+              <Text style={styles.messageReminder}>واذكروا الله ذكراً كثيراً</Text>
             </View>
-          )}
-        </View>
-
-        {/* Financial Countdown Card */}
-        <View style={styles.countdownCard}>
-          <View style={styles.countdownHeader}>
-            <Text style={styles.countdownIcon}>⏰</Text>
-            <Text style={styles.countdownTitle}>كم باقي على</Text>
           </View>
-          
-          <View style={styles.countdownGrid}>
-            {FINANCIAL_EVENTS.map((event, index) => (
-              <View key={index} style={styles.countdownItem}>
-                <Text style={styles.countdownEventIcon}>{event.icon}</Text>
-                <Text style={styles.countdownEventName}>{event.name}</Text>
-                <Text style={styles.countdownDays}>{event.days}</Text>
-                <Text style={styles.countdownLabel}>يوم</Text>
+
+          {/* 4. Date Card */}
+          <View style={styles.dateCard}>
+            <Text style={styles.iconText}>📅</Text>
+            <Text style={styles.dateDay}>{getDayName()}</Text>
+            <Text style={styles.dateText}>{getHijriDate()} هـ</Text>
+            <Text style={styles.dateText}>{getGregorianDate()} م</Text>
+          </View>
+
+          {/* 5. Prayer Times Card */}
+          <View style={styles.prayerCard}>
+            <View style={styles.prayerHeader}>
+              <Text style={styles.iconText}>🕌</Text>
+              <Text style={styles.prayerTitle}>مواقيت الصلاة</Text>
+            </View>
+            
+            <View style={styles.prayerGrid}>
+              {PRAYER_ORDER.filter(p => p.key !== 'sunrise').map((prayer) => {
+                const isNext = nextPrayer.key === prayer.key;
+                return (
+                  <View
+                    key={prayer.key}
+                    style={[
+                      styles.prayerItem,
+                      isNext && styles.prayerItemActive,
+                    ]}
+                  >
+                    <View style={[styles.prayerDot, isNext && styles.prayerDotActive]} />
+                    <Text style={[styles.prayerLabel, isNext && styles.prayerLabelActive]}>
+                      {prayer.label}
+                    </Text>
+                    <Text style={[styles.prayerTime, isNext && styles.prayerTimeActive]}>
+                      {formatTime(PRAYER_TIMES[prayer.key])}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+            
+            {nextPrayer && (
+              <View style={styles.nextPrayerBanner}>
+                <Text style={styles.nextPrayerText}>
+                  الصلاة القادمة: {nextPrayer.label} — {formatTime(nextPrayer.time)}
+                </Text>
               </View>
-            ))}
+            )}
           </View>
-        </View>
 
-        {/* Footer */}
-        <View style={styles.footer}>
-          <View style={styles.footerDivider} />
-          <Text style={styles.footerLogo}>✦ مواعيدك ✦</Text>
-          <Text style={styles.footerTagline}>منصة تجمع وقتك، راتبك، دعمك، وأهم مواعيدك</Text>
+          {/* 6. Countdown Card */}
+          <View style={styles.countdownCard}>
+            <View style={styles.countdownHeader}>
+              <Text style={styles.iconText}>⏰</Text>
+              <Text style={styles.countdownTitle}>كم باقي على</Text>
+            </View>
+            
+            <View style={styles.countdownGrid}>
+              {FINANCIAL_EVENTS.map((event, index) => (
+                <View key={index} style={styles.countdownItem}>
+                  <Text style={styles.countdownIcon}>{event.icon}</Text>
+                  <Text style={styles.countdownEventName}>{event.name}</Text>
+                  <Text style={styles.countdownDays}>{event.days}</Text>
+                  <Text style={styles.countdownLabel}>يوم</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          {/* 7. Footer Signature */}
+          <View style={styles.footer}>
+            <View style={styles.footerDivider} />
+            <Text style={styles.footerLogo}>✦ مواعيدك ✦</Text>
+            <Text style={styles.footerTagline}>منصة تجمع وقتك، راتبك، دعمك، وأهم مواعيدك</Text>
+          </View>
         </View>
       </View>
 
@@ -300,7 +320,6 @@ ${message}
         </Pressable>
       </View>
 
-      {/* Footer spacing */}
       <View style={styles.bottomSpacing} />
     </ScrollView>
   );
@@ -309,7 +328,7 @@ ${message}
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: THEME.background,
+    backgroundColor: CREAM,
     direction: I18nManager.isRTL ? 'rtl' : 'ltr',
   },
   header: {
@@ -320,40 +339,95 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: THEME.text,
+    color: INK,
     textAlign: 'center',
   },
   
-  // Main Card
+  // Main Card - exact match with web design
   card: {
-    backgroundColor: THEME.surface,
-    marginHorizontal: 16,
-    borderRadius: 28,
-    padding: 20,
+    alignSelf: 'center',
+    backgroundColor: SURFACE,
+    borderRadius: 32,
+    overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(201,160,99,0.3)',
-    shadowColor: THEME.secondary,
-    shadowOffset: { width: 0, height: 20 },
-    shadowOpacity: 0.12,
-    shadowRadius: 40,
-    elevation: 10,
+    borderColor: BORDER_GOLD,
+    shadowColor: BROWN,
+    shadowOffset: { width: 0, height: 25 },
+    shadowOpacity: 0.18,
+    shadowRadius: 70,
+    elevation: 15,
+  },
+  
+  // Background pattern
+  backgroundPattern: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+    opacity: 0.08,
+  },
+  
+  // Corner decorations
+  cornerDecoration: {
+    position: 'absolute',
+    width: 80,
+    height: 80,
+    opacity: 0.1,
+  },
+  cornerTopLeft: {
+    top: -40,
+    left: -40,
+    backgroundColor: GOLD,
+    borderRadius: 40,
+  },
+  cornerBottomRight: {
+    bottom: -40,
+    right: -40,
+    backgroundColor: GOLD,
+    borderRadius: 40,
+  },
+  
+  // Lantern
+  lantern: {
+    position: 'absolute',
+    top: 16,
+    left: 16,
+    zIndex: 10,
+  },
+  lanternText: {
+    fontSize: 28,
+    opacity: 0.7,
+  },
+  
+  // Content
+  content: {
+    padding: 20,
   },
   
   // Badge
   badge: {
     alignSelf: 'center',
-    backgroundColor: THEME.lightGold,
+    backgroundColor: LIGHT_GOLD,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(201,160,99,0.35)',
+    borderColor: BORDER_GOLD,
     marginBottom: 16,
+    shadowColor: GOLD,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
   },
   badgeText: {
     fontSize: 13,
     fontWeight: 'bold',
-    color: THEME.secondary,
+    color: BROWN,
+    letterSpacing: 1,
   },
   
   // Logo
@@ -363,97 +437,126 @@ const styles = StyleSheet.create({
   },
   logoIcon: {
     fontSize: 28,
-    color: THEME.primary,
+    color: GOLD,
     marginBottom: 4,
   },
   logoTitle: {
     fontSize: 32,
-    fontWeight: 'bold',
-    color: THEME.text,
+    fontWeight: '800',
+    color: INK,
+    letterSpacing: -0.5,
   },
   logoSubtitle: {
-    fontSize: 14,
-    color: THEME.textSecondary,
+    fontSize: 13,
+    color: BROWN,
     marginTop: 4,
   },
   divider: {
     width: 100,
-    height: 2,
-    backgroundColor: THEME.primary,
+    height: 1.5,
+    backgroundColor: GOLD,
     marginTop: 12,
-    opacity: 0.4,
+    opacity: 0.5,
   },
   
   // Message Banner
   messageBanner: {
-    backgroundColor: THEME.lightGold,
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 20,
+    overflow: 'hidden',
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: 'rgba(201,160,99,0.2)',
+    borderColor: BORDER_GOLD,
+    shadowColor: BROWN,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 15,
+    elevation: 5,
   },
-  messageQuote: {
-    fontSize: 24,
-    color: THEME.primary,
-    textAlign: 'center',
-    marginBottom: 8,
+  bannerBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    opacity: 0.15,
+  },
+  bannerOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255,253,249,0.95)',
+  },
+  bannerContent: {
+    padding: 16,
+    alignItems: 'center',
+  },
+  quoteIcon: {
+    fontSize: 28,
+    color: GOLD,
   },
   messageGreeting: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: 'bold',
-    color: THEME.secondary,
-    textAlign: 'center',
+    color: BROWN,
+    marginTop: 8,
     marginBottom: 8,
   },
   messageText: {
-    fontSize: 14,
-    color: THEME.text,
+    fontSize: 13,
+    color: INK,
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: 22,
     marginBottom: 10,
   },
   messageReminder: {
-    fontSize: 12,
-    color: THEME.primary,
-    textAlign: 'center',
+    fontSize: 11,
+    color: GOLD,
     fontWeight: '600',
+  },
+  iconText: {
+    fontSize: 20,
+    textAlign: 'center',
   },
   
   // Date Card
   dateCard: {
-    backgroundColor: THEME.surface,
-    borderRadius: 16,
+    backgroundColor: SURFACE,
+    borderRadius: 20,
     padding: 16,
     alignItems: 'center',
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: 'rgba(201,160,99,0.2)',
-  },
-  dateIcon: {
-    fontSize: 24,
-    marginBottom: 8,
+    borderColor: BORDER_GOLD,
+    shadowColor: BROWN,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 15,
+    elevation: 4,
   },
   dateDay: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: THEME.secondary,
+    fontSize: 18,
+    fontWeight: '800',
+    color: BROWN,
+    marginTop: 8,
     marginBottom: 4,
   },
   dateText: {
-    fontSize: 14,
-    color: THEME.text,
+    fontSize: 13,
+    color: INK,
     marginBottom: 2,
   },
   
   // Prayer Card
   prayerCard: {
-    backgroundColor: THEME.surface,
-    borderRadius: 16,
+    backgroundColor: SURFACE,
+    borderRadius: 20,
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: 'rgba(201,160,99,0.2)',
+    borderColor: BORDER_GOLD,
+    shadowColor: BROWN,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 15,
+    elevation: 4,
   },
   prayerHeader: {
     flexDirection: 'row',
@@ -462,13 +565,10 @@ const styles = StyleSheet.create({
     marginBottom: 14,
     gap: 8,
   },
-  prayerIcon: {
-    fontSize: 20,
-  },
   prayerTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
-    color: THEME.secondary,
+    color: BROWN,
   },
   prayerGrid: {
     flexDirection: 'row',
@@ -483,40 +583,47 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   prayerItemActive: {
-    backgroundColor: 'rgba(201,160,99,0.15)',
+    backgroundColor: 'rgba(201,160,99,0.2)',
     borderWidth: 1,
-    borderColor: 'rgba(201,160,99,0.35)',
+    borderColor: 'rgba(201,160,99,0.4)',
+    shadowColor: GOLD,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
   },
   prayerDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: THEME.lightGold,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: LIGHT_GOLD,
     marginBottom: 6,
   },
   prayerDotActive: {
-    backgroundColor: THEME.primary,
+    backgroundColor: GOLD,
   },
   prayerLabel: {
     fontSize: 11,
-    color: THEME.textSecondary,
+    color: INK,
+    opacity: 0.7,
     marginBottom: 4,
   },
   prayerLabelActive: {
-    color: THEME.secondary,
+    color: BROWN,
+    opacity: 1,
     fontWeight: '600',
   },
   prayerTime: {
     fontSize: 12,
     fontWeight: '600',
-    color: THEME.secondary,
+    color: BROWN,
   },
   prayerTimeActive: {
-    color: THEME.primary,
+    color: GOLD,
     fontWeight: 'bold',
   },
   nextPrayerBanner: {
-    backgroundColor: THEME.lightGold,
+    backgroundColor: LIGHT_GOLD,
     borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 14,
@@ -524,19 +631,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   nextPrayerText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: 'bold',
-    color: THEME.primary,
+    color: GOLD,
   },
   
   // Countdown Card
   countdownCard: {
-    backgroundColor: THEME.lightGold,
-    borderRadius: 16,
+    backgroundColor: LIGHT_GOLD,
+    borderRadius: 20,
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: 'rgba(201,160,99,0.2)',
+    borderColor: BORDER_GOLD,
   },
   countdownHeader: {
     flexDirection: 'row',
@@ -545,13 +652,10 @@ const styles = StyleSheet.create({
     marginBottom: 14,
     gap: 8,
   },
-  countdownIcon: {
-    fontSize: 18,
-  },
   countdownTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: 'bold',
-    color: THEME.secondary,
+    color: BROWN,
   },
   countdownGrid: {
     flexDirection: 'row',
@@ -559,31 +663,37 @@ const styles = StyleSheet.create({
   },
   countdownItem: {
     alignItems: 'center',
-    backgroundColor: THEME.surface,
+    backgroundColor: SURFACE,
     borderRadius: 14,
     paddingVertical: 14,
     paddingHorizontal: 16,
     minWidth: 90,
     borderWidth: 1,
-    borderColor: 'rgba(201,160,99,0.15)',
+    borderColor: 'rgba(201,160,99,0.2)',
+    shadowColor: BROWN,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 3,
   },
-  countdownEventIcon: {
+  countdownIcon: {
     fontSize: 22,
     marginBottom: 6,
   },
   countdownEventName: {
     fontSize: 11,
-    color: THEME.text,
+    color: INK,
     marginBottom: 4,
   },
   countdownDays: {
     fontSize: 26,
-    fontWeight: 'bold',
-    color: THEME.primary,
+    fontWeight: '800',
+    color: GOLD,
   },
   countdownLabel: {
     fontSize: 10,
-    color: THEME.textSecondary,
+    color: INK,
+    opacity: 0.6,
     marginTop: 2,
   },
   
@@ -594,20 +704,22 @@ const styles = StyleSheet.create({
   },
   footerDivider: {
     width: '100%',
-    height: 1,
-    backgroundColor: 'rgba(201,160,99,0.3)',
+    height: 1.5,
+    backgroundColor: 'rgba(201,160,99,0.4)',
     marginBottom: 12,
   },
   footerLogo: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: THEME.primary,
-    marginBottom: 4,
+    fontWeight: '800',
+    color: GOLD,
+    letterSpacing: 1,
   },
   footerTagline: {
     fontSize: 10,
-    color: THEME.textSecondary,
+    color: INK,
+    opacity: 0.6,
     textAlign: 'center',
+    marginTop: 4,
   },
   
   // Actions
@@ -620,18 +732,23 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     flex: 1,
-    backgroundColor: THEME.primary,
+    backgroundColor: GOLD,
     borderRadius: 16,
     paddingVertical: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
+    shadowColor: GOLD,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 5,
   },
   actionButtonSecondary: {
-    backgroundColor: THEME.surface,
+    backgroundColor: SURFACE,
     borderWidth: 1,
-    borderColor: THEME.border,
+    borderColor: 'rgba(201,160,99,0.3)',
   },
   actionIcon: {
     fontSize: 20,
@@ -644,7 +761,7 @@ const styles = StyleSheet.create({
   actionTextSecondary: {
     fontSize: 15,
     fontWeight: 'bold',
-    color: THEME.text,
+    color: INK,
   },
   
   bottomSpacing: {

@@ -251,6 +251,7 @@ export default function CalendarScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingBottom: 120,
     backgroundColor: THEME.background,
     direction: I18nManager.isRTL ? 'rtl' : 'ltr',
   },
@@ -296,6 +297,7 @@ const styles = StyleSheet.create({
   },
   dayHeaderText: {
     flex: 1,
+    paddingBottom: 120,
     textAlign: 'center',
     fontSize: 12,
     fontWeight: '600',
@@ -404,6 +406,7 @@ const styles = StyleSheet.create({
   },
   timeSlots: {
     flex: 1,
+    paddingBottom: 120,
     paddingHorizontal: 16,
     marginTop: 16,
   },
@@ -433,6 +436,7 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
+    paddingBottom: 120,
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'flex-end',
   },
@@ -462,6 +466,7 @@ const styles = StyleSheet.create({
   },
   modalButton: {
     flex: 1,
+    paddingBottom: 120,
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
