@@ -1,0 +1,54 @@
+name: Mobile Expo Verification
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'mobile/**'
+      - '.github/workflows/mobile-expo-verification.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'mobile/**'
+      - '.github/workflows/mobile-expo-verification.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: mobile-expo-verification-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  mobile-expo-verification:
+    name: Mobile typecheck and Expo doctor
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    defaults:
+      run:
+        working-directory: mobile
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install mobile dependencies
+        run: npm install
+
+      - name: Mobile typecheck
+        run: npm run typecheck
+
+      - name: Expo doctor
+        run: npm run doctor
+
+      - name: Expo export smoke
+        run: npx expo export --platform web
