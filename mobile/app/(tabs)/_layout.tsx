@@ -2,13 +2,13 @@
  * Tab Layout — Bottom Tab Navigation for Mawaeedak Mobile
  * 
  * Luxury design matching Mawaeedak identity:
- * - RTL order: المزيد, التقويم, الخدمات, الرواتب, الرئيسية
+ * - RTL order: الرئيسية, الرواتب, الخدمات, التقويم, المزيد
  * - Active: capsule with cream background + gold icon + gold text + gold underline
  * - Inactive: no background + brown icon + brown text
  * - Ivory/cream background with gold border
  * - Soft shadow, large border-radius
  * - Support safe-area-bottom
- * - Using Feather icons
+ * - Using Feather icons: Home, DollarSign, Grid, Calendar, MoreHorizontal
  */
 
 import { Tabs } from 'expo-router';
@@ -19,11 +19,11 @@ import { Feather } from '@expo/vector-icons';
 // Theme colors - Mawaeedak luxury identity
 const GOLD = '#C9A063';
 const BROWN = '#8A6B3D';
+const INK = '#2F2B25';
 const CREAM = '#FAF7F2';
 const LIGHT_CREAM = '#F5EFE4';
 
 // Tab data with Feather icon names
-// RTL order: المزيد, التقويم, الخدمات, الرواتب, الرئيسية
 const TABS = [
   { name: 'home', label: 'الرئيسية', iconName: 'home' as const },
   { name: 'salary', label: 'الرواتب', iconName: 'dollar-sign' as const },
@@ -34,16 +34,22 @@ const TABS = [
 
 // Icon component
 function TabIcon({ name, size, color }: { name: string; size: number; color: string }) {
-  return <Feather name={name as any} size={size} color={color} />;
+  return (
+    <Feather 
+      name={name as any} 
+      size={size} 
+      color={color} 
+    />
+  );
 }
 
 // Tab item component
 function TabItem({ label, iconName, isActive, onPress }: { label: string; iconName: string; isActive: boolean; onPress: () => void }) {
   const iconColor = isActive ? GOLD : BROWN;
-
+  
   return (
-    <Pressable
-      onPress={onPress}
+    <Pressable 
+      onPress={onPress} 
       style={[styles.tabItem, isActive && styles.tabItemActive]}
       accessibilityLabel={label}
       accessibilityRole="button"
@@ -62,26 +68,26 @@ function TabItem({ label, iconName, isActive, onPress }: { label: string; iconNa
 function CustomTabBar({ state, descriptors, navigation }: any) {
   const { width } = useWindowDimensions();
   const tabBarWidth = Math.min(width - 32, 420);
-
+  
   return (
     <View style={styles.tabBarContainer}>
       <View style={[styles.tabBar, { width: tabBarWidth }]}>
         {state.routes.map((route: any, index: number) => {
           const isFocused = state.index === index;
           const tab = TABS[index];
-
+          
           const onPress = () => {
             const event = navigation.emit({
               type: 'tabPress',
               target: route.key,
               canPreventDefault: true,
             });
-
+            
             if (!isFocused && !event.defaultPrevented) {
               navigation.navigate(route.name);
             }
           };
-
+          
           return (
             <TabItem
               key={route.key}
@@ -127,7 +133,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     alignItems: 'center',
-    paddingBottom: 20,
+    paddingBottom: 20, // safe-area-bottom
     direction: I18nManager.isRTL ? 'rtl' : 'ltr',
   },
   tabBar: {
@@ -163,6 +169,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 2,
+  },
+  icon: {
+    fontSize: 22,
   },
   label: {
     fontSize: 9,

@@ -3,70 +3,50 @@
  * 
  * Provides:
  * - RTL support for Arabic
- * - Tab navigation with (tabs) group
- * - Stack navigation for modals/screens
- * - Safe area handling
+ * - QueryClient for data fetching
+ * - Tab navigation
+ * - Status bar styling
  */
 
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { I18nManager } from 'react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 // Force RTL for Arabic language
 I18nManager.allowRTL(true);
 I18nManager.forceRTL(true);
 
+// Query Client configuration
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 30_000,
+      gcTime: 5 * 60_000
+    },
+    mutations: {
+      retry: 0
+    }
+  }
+});
+
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
-      <StatusBar style="dark" />
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: '#FAF7F2' },
-          animation: 'slide_from_right',
-        }}
-      >
-        {/* Tabs Group - Main Navigation */}
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        
-        {/* Daily Card Screen */}
-        <Stack.Screen 
-          name="daily-card" 
-          options={{ 
-            title: 'البطاقة اليومية',
-            headerShown: true,
-            headerStyle: { backgroundColor: '#FAF7F2' },
-            headerTintColor: '#2F2B25',
-            headerTitleStyle: { fontWeight: '700', fontSize: 18 },
-          }} 
-        />
-        
-        {/* Settings Screen */}
-        <Stack.Screen 
-          name="settings" 
-          options={{ 
-            title: 'الإعدادات',
-            headerShown: true,
-            headerStyle: { backgroundColor: '#FAF7F2' },
-            headerTintColor: '#2F2B25',
-            headerTitleStyle: { fontWeight: '700', fontSize: 18 },
-          }} 
-        />
-        
-        {/* Account Screen */}
-        <Stack.Screen 
-          name="account" 
-          options={{ 
-            title: 'حسابي',
-            headerShown: true,
-            headerStyle: { backgroundColor: '#FAF7F2' },
-            headerTintColor: '#2F2B25',
-            headerTitleStyle: { fontWeight: '700', fontSize: 18 },
-          }} 
-        />
-      </Stack>
+      <QueryClientProvider client={queryClient}>
+        <StatusBar style="dark" />
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: '#FAF7F2' }
+          }}
+        >
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="daily-card" options={{ title: 'البطاقة اليومية' }} />
+        </Stack>
+      </QueryClientProvider>
     </SafeAreaProvider>
   );
 }

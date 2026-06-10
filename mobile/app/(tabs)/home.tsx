@@ -2,28 +2,30 @@
  * Home Screen — Main entry point for Mawaeedak Mobile
  * 
  * Features:
- * - Greeting hero section
- * - Prayer times with countdown to next prayer
+ * - Prayer times countdown
  * - Financial events countdown
+ * - Upcoming appointments
  * - Quick actions
- * - Daily message from admin
  */
 
-import { useState, useEffect, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, RefreshControl } from 'react-native';
+import { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { I18nManager } from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 
-// Theme colors
-const GOLD = '#C9A063';
-const BROWN = '#8A6B3D';
-const INK = '#2F2B25';
-const PAPER = '#FAF7F2';
-const CREAM = '#F5EFE4';
-const TEXT_SECONDARY = '#6F6557';
+// Theme colors (Saudi Identity)
+const THEME = {
+  primary: '#C9A063',
+  secondary: '#8A6B3D',
+  background: '#FAF7F2',
+  surface: '#FFFFFF',
+  text: '#2F2B25',
+  textSecondary: '#6F6557',
+  border: '#DCD7CF',
+  error: '#B45A4D',
+  success: '#7A9A74',
+};
 
-// Mock Prayer Times
+// Mock data for demo
 const MOCK_PRAYER_TIMES = {
   fajr: '04:30',
   sunrise: '05:45',
@@ -31,408 +33,392 @@ const MOCK_PRAYER_TIMES = {
   asr: '15:15',
   maghrib: '18:45',
   isha: '20:00',
+  nextPrayer: 'العصر',
+  nextPrayerTime: '15:15',
+  countdown: '2 ساعة و 30 دقيقة',
 };
 
-// Mock Financial Events
-const MOCK_FINANCIAL = [
-  { id: 1, name: 'راتب شهر ذو الحجة', days: 15, amount: '12,000 ر.س', type: 'salary' },
-  { id: 2, name: 'حساب المواطن', days: 8, amount: '2,000 ر.س', type: 'support' },
-  { id: 3, name: 'فاتورة كهرباء', days: 3, amount: '350 ر.س', type: 'bill' },
+const MOCK_FINANCIAL_EVENTS = [
+  { id: 1, name: 'راتب شهر ذو الحجة', daysRemaining: 15, amount: '12,000 ر.س', type: 'salary' },
+  { id: 2, name: 'حساب المواطن', daysRemaining: 8, amount: '2,000 ر.س', type: 'support' },
 ];
 
-// Default daily message
-const DEFAULT_MESSAGE = 'ابدأ يومك بنية طيبة، وتوكل على الله في كل خطوة.';
-
-function getGreeting() {
-  const hour = new Date().getHours();
-  return hour < 12 ? 'صباح الخير' : 'مساء الخير';
-}
-
-function formatGregorianDate() {
-  const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
-  const months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
-  const now = new Date();
-  return `${days[now.getDay()]}، ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
-}
-
-function formatHijriDate() {
-  // Simplified - would use proper Hijri library in production
-  const months = ['محرم', 'صفر', 'ربيع الأول', 'ربيع الثاني', 'جمادى الأولى', 'جمادى الآخرة', 'رجب', 'شعبان', 'رمضان', 'شوال', 'ذو القعدة', 'ذو الحجة'];
-  const now = new Date();
-  return `${now.getDate()} ${months[now.getMonth()]} 1447`;
-}
-
-// Prayer Card Component
-function PrayerCard({ label, time, icon, isNext = false }: { label: string; time: string; icon: string; isNext?: boolean }) {
-  return (
-    <View style={[styles.prayerCard, isNext && styles.prayerCardActive]}>
-      <Text style={styles.prayerIcon}>{icon}</Text>
-      <Text style={[styles.prayerLabel, isNext && styles.prayerLabelActive]}>{label}</Text>
-      <Text style={[styles.prayerTime, isNext && styles.prayerTimeActive]}>{time}</Text>
-    </View>
-  );
-}
-
-// Financial Item Component
-function FinancialItem({ name, days, amount, type }: { name: string; days: number; amount: string; type: string }) {
-  const getTypeIcon = () => {
-    switch (type) {
-      case 'salary': return '💰';
-      case 'support': return '🏠';
-      case 'bill': return '📄';
-      default: return '💵';
-    }
-  };
-
-  const getDaysColor = () => {
-    if (days <= 3) return '#B9483F';
-    if (days <= 7) return '#C9A063';
-    return '#7A9A74';
-  };
-
-  return (
-    <View style={styles.financialItem}>
-      <View style={styles.financialIcon}>
-        <Text style={{ fontSize: 24 }}>{getTypeIcon()}</Text>
-      </View>
-      <View style={styles.financialContent}>
-        <Text style={styles.financialName}>{name}</Text>
-        <Text style={styles.financialAmount}>{amount}</Text>
-      </View>
-      <View style={[styles.financialDays, { backgroundColor: getDaysColor() + '20' }]}>
-        <Text style={[styles.financialDaysText, { color: getDaysColor() }]}>
-          {days === 0 ? 'اليوم' : days === 1 ? 'غداً' : `${days} يوم`}
-        </Text>
-      </View>
-    </View>
-  );
-}
-
-// Loading Screen
-function LoadingScreen() {
-  return (
-    <View style={styles.loadingContainer}>
-      <Text style={styles.loadingLogo}>🕌</Text>
-      <Text style={styles.loadingText}>جاري تحميل مواعيدك...</Text>
-      <ActivityIndicator size="large" color={GOLD} />
-    </View>
-  );
-}
+const MOCK_APPOINTMENTS = [
+  { id: 1, title: 'زيارة الطبيب', date: '15/06/2026', time: '10:00 ص', type: 'medical' },
+  { id: 2, title: 'تجديد الإقامة', date: '18/06/2026', time: '02:00 م', type: 'official' },
+];
 
 export default function HomeScreen() {
-  const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
 
-  // Simulate loading
   useEffect(() => {
+    // Simulate loading
     const timer = setTimeout(() => setIsLoading(false), 800);
     return () => clearTimeout(timer);
   }, []);
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1000);
-  };
-
   if (isLoading) {
-    return <LoadingScreen />;
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingLogo}>🕌</Text>
+        <Text style={styles.loadingText}>جاري تحميل مواعيدك...</Text>
+        <ActivityIndicator size="large" color={THEME.primary} />
+      </View>
+    );
   }
 
-  const prayers = [
-    { key: 'fajr', label: 'الفجر', time: MOCK_PRAYER_TIMES.fajr, icon: '🌙' },
-    { key: 'sunrise', label: 'الشروق', time: MOCK_PRAYER_TIMES.sunrise, icon: '🌅' },
-    { key: 'dhuhr', label: 'الظهر', time: MOCK_PRAYER_TIMES.dhuhr, icon: '☀️' },
-    { key: 'asr', label: 'العصر', time: MOCK_PRAYER_TIMES.asr, icon: '☀️' },
-    { key: 'maghrib', label: 'المغرب', time: MOCK_PRAYER_TIMES.maghrib, icon: '🌅' },
-    { key: 'isha', label: 'العشاء', time: MOCK_PRAYER_TIMES.isha, icon: '🌙' },
-  ];
-
   return (
-    <View style={styles.container}>
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[GOLD]} />}
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.greeting}>{getGreeting()}</Text>
-            <Text style={styles.dateText}>{formatGregorianDate()}</Text>
-            <Text style={styles.hijriText}>{formatHijriDate()} هـ</Text>
-          </View>
-          <View style={styles.logoContainer}>
-            <Text style={styles.logo}>🕌</Text>
-          </View>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      {/* Header */}
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.greeting}>أهلاً بك</Text>
+          <Text style={styles.dateText}>التاريخ الهجري</Text>
         </View>
+        <Text style={styles.logo}>🕌 مواعيدك</Text>
+      </View>
 
-        {/* Daily Message Card */}
-        <View style={styles.messageCard}>
-          <View style={styles.messageIcon}>
-            <Feather name="message-circle" size={20} color={GOLD} />
-          </View>
-          <Text style={styles.messageText}>{DEFAULT_MESSAGE}</Text>
+      {/* Prayer Times Card */}
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <Text style={styles.cardTitle}>🕌 الصلاة القادمة</Text>
+          <Text style={styles.prayerBadge}>{MOCK_PRAYER_TIMES.nextPrayer}</Text>
         </View>
-
-        {/* Prayer Times Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>مواقيت الصلاة</Text>
-          <Text style={styles.sectionSubtitle}>الرياض</Text>
-          <View style={styles.prayerGrid}>
-            {prayers.map((prayer) => (
-              <PrayerCard key={prayer.key} label={prayer.label} time={prayer.time} icon={prayer.icon} />
-            ))}
-          </View>
+        <Text style={styles.prayerTimeLarge}>{MOCK_PRAYER_TIMES.nextPrayerTime}</Text>
+        <Text style={styles.countdown}>متبقي: {MOCK_PRAYER_TIMES.countdown}</Text>
+        
+        <View style={styles.prayerTimesRow}>
+          {Object.entries(MOCK_PRAYER_TIMES).slice(0, 6).map(([key, value]) => (
+            <View key={key} style={styles.prayerTimeItem}>
+              <Text style={styles.prayerTimeLabel}>{key}</Text>
+              <Text style={styles.prayerTimeValue}>{value}</Text>
+            </View>
+          ))}
         </View>
+      </View>
 
-        {/* Financial Events Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>المواعيد المالية</Text>
-          <View style={styles.financialList}>
-            {MOCK_FINANCIAL.map((item) => (
-              <FinancialItem key={item.id} name={item.name} days={item.days} amount={item.amount} type={item.type} />
-            ))}
+      {/* Financial Countdown */}
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>💰 المواعيد المالية</Text>
+        <Pressable>
+          <Text style={styles.seeAll}>عرض الكل</Text>
+        </Pressable>
+      </View>
+      
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
+        {MOCK_FINANCIAL_EVENTS.map((event) => (
+          <View key={event.id} style={styles.financialCard}>
+            <View style={[styles.financialIcon, { backgroundColor: event.type === 'salary' ? THEME.primary : THEME.success }]}>
+              <Text style={styles.financialIconText}>{event.type === 'salary' ? '💰' : '🏛️'}</Text>
+            </View>
+            <Text style={styles.financialName}>{event.name}</Text>
+            <Text style={styles.financialAmount}>{event.amount}</Text>
+            <View style={styles.daysBadge}>
+              <Text style={styles.daysText}>متبقي {event.daysRemaining} يوم</Text>
+            </View>
           </View>
-        </View>
-
-        {/* Quick Actions */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>إجراءات سريعة</Text>
-          <View style={styles.quickActions}>
-            <Pressable style={styles.quickAction} onPress={() => router.push('/daily-card')}>
-              <View style={[styles.quickActionIcon, { backgroundColor: GOLD + '20' }]}>
-                <Text style={{ fontSize: 24 }}>🎴</Text>
-              </View>
-              <Text style={styles.quickActionLabel}>البطاقة اليومية</Text>
-            </Pressable>
-            <Pressable style={styles.quickAction} onPress={() => router.push('/(tabs)/calendar')}>
-              <View style={[styles.quickActionIcon, { backgroundColor: BROWN + '20' }]}>
-                <Text style={{ fontSize: 24 }}>📅</Text>
-              </View>
-              <Text style={styles.quickActionLabel}>المواعيد</Text>
-            </Pressable>
-            <Pressable style={styles.quickAction} onPress={() => router.push('/(tabs)/services')}>
-              <View style={[styles.quickActionIcon, { backgroundColor: '#7A9A7420' }]}>
-                <Text style={{ fontSize: 24 }}>🏢</Text>
-              </View>
-              <Text style={styles.quickActionLabel}>الخدمات</Text>
-            </Pressable>
-          </View>
-        </View>
-
-        {/* Bottom padding for tab bar */}
-        <View style={{ height: 100 }} />
+        ))}
       </ScrollView>
-    </View>
+
+      {/* Upcoming Appointments */}
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>📅 المواعيد القادمة</Text>
+        <Pressable>
+          <Text style={styles.seeAll}>عرض الكل</Text>
+        </Pressable>
+      </View>
+
+      {MOCK_APPOINTMENTS.map((appointment) => (
+        <Pressable key={appointment.id} style={styles.appointmentCard}>
+          <View style={styles.appointmentIcon}>
+            <Text>{appointment.type === 'medical' ? '🏥' : '🏛️'}</Text>
+          </View>
+          <View style={styles.appointmentInfo}>
+            <Text style={styles.appointmentTitle}>{appointment.title}</Text>
+            <Text style={styles.appointmentDate}>{appointment.date} - {appointment.time}</Text>
+          </View>
+          <Text style={styles.chevron}>›</Text>
+        </Pressable>
+      ))}
+
+      {/* Quick Actions */}
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>⚡ إجراءات سريعة</Text>
+      </View>
+
+      <View style={styles.quickActions}>
+        <Pressable style={styles.quickAction}>
+          <Text style={styles.quickActionIcon}>📅</Text>
+          <Text style={styles.quickActionLabel}>إضافة موعد</Text>
+        </Pressable>
+        <Pressable style={styles.quickAction}>
+          <Text style={styles.quickActionIcon}>💰</Text>
+          <Text style={styles.quickActionLabel}>تاريخ مالي</Text>
+        </Pressable>
+        <Pressable style={styles.quickAction}>
+          <Text style={styles.quickActionIcon}>🕌</Text>
+          <Text style={styles.quickActionLabel}>القبلة</Text>
+        </Pressable>
+        <Pressable style={styles.quickAction}>
+          <Text style={styles.quickActionIcon}>📍</Text>
+          <Text style={styles.quickActionLabel}>اتجاه القبلة</Text>
+        </Pressable>
+      </View>
+
+      {/* Footer spacing */}
+      <View style={styles.footer} />
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: PAPER,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: 16,
-    paddingTop: 60,
+    paddingBottom: 120,
+    backgroundColor: THEME.background,
+    direction: I18nManager.isRTL ? 'rtl' : 'ltr',
   },
   loadingContainer: {
     flex: 1,
+    paddingBottom: 120,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: PAPER,
+    backgroundColor: THEME.background,
   },
   loadingLogo: {
-    fontSize: 48,
-    marginBottom: 16,
+    fontSize: 64,
+    marginBottom: 20,
   },
   loadingText: {
     fontSize: 18,
-    color: BROWN,
-    marginBottom: 24,
+    color: THEME.textSecondary,
+    marginBottom: 20,
   },
+
+  // Header
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 20,
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 60,
+    paddingBottom: 20,
   },
   greeting: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: INK,
+    fontSize: 14,
+    color: THEME.textSecondary,
   },
   dateText: {
-    fontSize: 14,
-    color: TEXT_SECONDARY,
+    fontSize: 12,
+    color: THEME.textSecondary,
     marginTop: 4,
   },
-  hijriText: {
-    fontSize: 14,
-    color: GOLD,
-    marginTop: 2,
-  },
-  logoContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    backgroundColor: CREAM,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   logo: {
-    fontSize: 32,
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: THEME.primary,
   },
-  messageCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: CREAM,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 24,
+
+  // Card
+  card: {
+    backgroundColor: THEME.surface,
+    marginHorizontal: 16,
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 20,
     borderWidth: 1,
-    borderColor: 'rgba(201,160,99,0.15)',
+    borderColor: THEME.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  messageIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: GOLD + '20',
-    justifyContent: 'center',
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginRight: 12,
-  },
-  messageText: {
-    flex: 1,
-    fontSize: 15,
-    color: INK,
-    lineHeight: 24,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: INK,
-    marginBottom: 4,
-  },
-  sectionSubtitle: {
-    fontSize: 14,
-    color: TEXT_SECONDARY,
     marginBottom: 12,
   },
-  prayerGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: THEME.text,
   },
-  prayerCard: {
-    width: '31%',
-    backgroundColor: CREAM,
-    borderRadius: 14,
-    padding: 12,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(201,160,99,0.10)',
-  },
-  prayerCardActive: {
-    backgroundColor: GOLD + '15',
-    borderColor: GOLD,
-  },
-  prayerIcon: {
-    fontSize: 20,
-    marginBottom: 4,
-  },
-  prayerLabel: {
+  prayerBadge: {
+    backgroundColor: THEME.primary,
+    color: '#FFF',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
     fontSize: 12,
-    color: TEXT_SECONDARY,
+    fontWeight: 'bold',
+    overflow: 'hidden',
+  },
+  prayerTimeLarge: {
+    fontSize: 36,
+    fontWeight: 'bold',
+    color: THEME.primary,
+    textAlign: 'center',
     marginBottom: 4,
   },
-  prayerLabelActive: {
-    color: GOLD,
+  countdown: {
+    fontSize: 14,
+    color: THEME.textSecondary,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  prayerTimesRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    borderTopWidth: 1,
+    borderTopColor: THEME.border,
+    paddingTop: 12,
+  },
+  prayerTimeItem: {
+    alignItems: 'center',
+  },
+  prayerTimeLabel: {
+    fontSize: 10,
+    color: THEME.textSecondary,
+    marginBottom: 4,
+  },
+  prayerTimeValue: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: THEME.text,
+  },
+
+  // Section
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginTop: 16,
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: THEME.text,
+  },
+  seeAll: {
+    fontSize: 14,
+    color: THEME.primary,
     fontWeight: '600',
   },
-  prayerTime: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: INK,
+
+  // Horizontal Scroll
+  horizontalScroll: {
+    paddingRight: 16,
   },
-  prayerTimeActive: {
-    color: GOLD,
-  },
-  financialList: {
-    gap: 8,
-  },
-  financialItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: CREAM,
-    borderRadius: 14,
-    padding: 14,
+  financialCard: {
+    backgroundColor: THEME.surface,
+    borderRadius: 16,
+    padding: 16,
+    marginRight: 12,
+    width: 160,
     borderWidth: 1,
-    borderColor: 'rgba(201,160,99,0.10)',
+    borderColor: THEME.border,
   },
   financialIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  financialIconText: {
+    fontSize: 20,
+  },
+  financialName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: THEME.text,
+    marginBottom: 4,
+  },
+  financialAmount: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: THEME.primary,
+    marginBottom: 8,
+  },
+  daysBadge: {
+    backgroundColor: THEME.background,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+  },
+  daysText: {
+    fontSize: 11,
+    color: THEME.textSecondary,
+  },
+
+  // Appointments
+  appointmentCard: {
+    backgroundColor: THEME.surface,
+    marginHorizontal: 16,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: THEME.border,
+  },
+  appointmentIcon: {
     width: 44,
     height: 44,
     borderRadius: 12,
-    backgroundColor: PAPER,
+    backgroundColor: THEME.background,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginLeft: 12,
   },
-  financialContent: {
+  appointmentInfo: {
     flex: 1,
+    paddingBottom: 120,
   },
-  financialName: {
-    fontSize: 15,
+  appointmentTitle: {
+    fontSize: 16,
     fontWeight: '600',
-    color: INK,
+    color: THEME.text,
+    marginBottom: 4,
   },
-  financialAmount: {
+  appointmentDate: {
     fontSize: 13,
-    color: TEXT_SECONDARY,
-    marginTop: 2,
+    color: THEME.textSecondary,
   },
-  financialDays: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
+  chevron: {
+    fontSize: 24,
+    color: THEME.textSecondary,
   },
-  financialDaysText: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
+
+  // Quick Actions
   quickActions: {
     flexDirection: 'row',
-    gap: 12,
+    justifyContent: 'space-around',
+    paddingHorizontal: 16,
+    marginTop: 8,
   },
   quickAction: {
-    flex: 1,
-    backgroundColor: CREAM,
-    borderRadius: 16,
-    padding: 16,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(201,160,99,0.10)',
+    padding: 12,
   },
   quickActionIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
+    fontSize: 28,
     marginBottom: 8,
   },
   quickActionLabel: {
-    fontSize: 13,
-    color: INK,
-    fontWeight: '600',
+    fontSize: 12,
+    color: THEME.text,
+    fontWeight: '500',
+  },
+
+  footer: {
+    height: 100,
   },
 });

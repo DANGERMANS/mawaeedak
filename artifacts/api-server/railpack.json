@@ -1,0 +1,4 @@
+{
+  "$schema": "https://schema.railpack.com",
+  "installCommand": "echo 'Install handled by buildCommand'"
+}

@@ -1,640 +1,532 @@
 /**
- * Salary Screen — Financial Management for Mawaeedak Mobile
+ * Salary Screen — Financial Events & Salary Countdown
  * 
  * Features:
- * - Salary tracking
- * - Support payments (حساب المواطن)
- * - Bills management
- * - Financial calendar
- * - Add/edit financial events
+ * - Salary countdown cards
+ * - Support program countdown
+ * - Financial events list
+ * - Add new financial event
  */
 
-import { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Modal, Alert } from 'react-native';
+import { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, Pressable, Modal, TextInput, ActivityIndicator } from 'react-native';
 import { I18nManager } from 'react-native';
-import { Feather } from '@expo/vector-icons';
 
 // Theme colors
-const GOLD = '#C9A063';
-const BROWN = '#8A6B3D';
-const INK = '#2F2B25';
-const PAPER = '#FAF7F2';
-const CREAM = '#F5EFE4';
-const TEXT_SECONDARY = '#6F6557';
-const ERROR = '#B9483F';
-const SUCCESS = '#7A9A74';
+const THEME = {
+  primary: '#C9A063',
+  secondary: '#8A6B3D',
+  background: '#FAF7F2',
+  surface: '#FFFFFF',
+  text: '#2F2B25',
+  textSecondary: '#6F6557',
+  border: '#DCD7CF',
+  error: '#B45A4D',
+  success: '#7A9A74',
+};
 
-// Mock Data
+// Mock financial data
 const MOCK_SALARY = {
-  company: 'شركة التقنية المتقدمة',
-  amount: '12,000',
-  currency: 'ر.س',
-  nextPayment: '2026-06-25',
-  daysRemaining: 16,
-  paymentDay: 25,
+  name: 'راتب شهر ذو الحجة 1447',
+  amount: 12000,
+  daysRemaining: 15,
+  nextDate: '2026-06-25',
+  status: 'confirmed',
 };
 
-const MOCK_SUPPORT = {
-  amount: '2,000',
-  currency: 'ر.س',
-  nextPayment: '2026-06-10',
-  daysRemaining: 1,
-  status: 'approved',
-};
-
-const MOCK_BILLS = [
-  { id: 1, name: 'فاتورة كهرباء', amount: '350', dueDate: '2026-06-12', daysRemaining: 3 },
-  { id: 2, name: 'فاتورة ماء', amount: '120', dueDate: '2026-06-15', daysRemaining: 6 },
-  { id: 3, name: 'إنترنت', amount: '200', dueDate: '2026-06-20', daysRemaining: 11 },
+const MOCK_SUPPORT = [
+  { id: 1, name: 'حساب المواطن', amount: 2000, daysRemaining: 8, status: 'pending' },
+  { id: 2, name: 'ضمان اجتماعي', amount: 1500, daysRemaining: 22, status: 'confirmed' },
 ];
 
-// Type definitions
-type FinancialType = 'salary' | 'support' | 'bill' | 'investment';
-
-interface FinancialItem {
-  id: string;
-  name: string;
-  amount: string;
-  date: string;
-  type: FinancialType;
-}
-
-// Financial Card Component
-function FinancialCard({ icon, title, amount, date, daysRemaining, color }: {
-  icon: string;
-  title: string;
-  amount: string;
-  date: string;
-  daysRemaining: number;
-  color: string;
-}) {
-  const getDaysLabel = () => {
-    if (daysRemaining === 0) return 'اليوم';
-    if (daysRemaining === 1) return 'غداً';
-    return `${daysRemaining} يوم`;
-  };
-
-  const getDaysColor = () => {
-    if (daysRemaining <= 2) return ERROR;
-    if (daysRemaining <= 5) return GOLD;
-    return SUCCESS;
-  };
-
-  return (
-    <View style={styles.card}>
-      <View style={[styles.cardIcon, { backgroundColor: color + '20' }]}>
-        <Text style={{ fontSize: 28 }}>{icon}</Text>
-      </View>
-      <View style={styles.cardContent}>
-        <Text style={styles.cardTitle}>{title}</Text>
-        <View style={styles.cardDetails}>
-          <Text style={styles.cardAmount}>{amount}</Text>
-          <Text style={styles.cardDate}>{date}</Text>
-        </View>
-      </View>
-      <View style={[styles.cardBadge, { backgroundColor: getDaysColor() + '20' }]}>
-        <Text style={[styles.cardBadgeText, { color: getDaysColor() }]}>{getDaysLabel()}</Text>
-      </View>
-    </View>
-  );
-}
-
-// Bill Item Component
-function BillItem({ name, amount, dueDate, daysRemaining, onPress }: {
-  name: string;
-  amount: string;
-  dueDate: string;
-  daysRemaining: number;
-  onPress: () => void;
-}) {
-  const getDaysColor = () => {
-    if (daysRemaining <= 2) return ERROR;
-    if (daysRemaining <= 5) return GOLD;
-    return TEXT_SECONDARY;
-  };
-
-  return (
-    <Pressable style={styles.billItem} onPress={onPress}>
-      <View style={styles.billIcon}>
-        <Feather name="file-text" size={20} color={BROWN} />
-      </View>
-      <View style={styles.billContent}>
-        <Text style={styles.billName}>{name}</Text>
-        <Text style={styles.billDue}>تاريخ الاستحقاق: {dueDate}</Text>
-      </View>
-      <View style={styles.billRight}>
-        <Text style={styles.billAmount}>{amount}</Text>
-        <Text style={[styles.billDays, { color: getDaysColor() }]}>
-          {daysRemaining === 0 ? 'اليوم' : daysRemaining === 1 ? 'غداً' : `${daysRemaining} يوم`}
-        </Text>
-      </View>
-    </Pressable>
-  );
-}
-
-// Add Modal Component
-function AddModal({ visible, onClose, onAdd, type }: {
-  visible: boolean;
-  onClose: () => void;
-  onAdd: (item: FinancialItem) => void;
-  type: FinancialType;
-}) {
-  const [name, setName] = useState('');
-  const [amount, setAmount] = useState('');
-  const [date, setDate] = useState('');
-
-  const handleAdd = () => {
-    if (!name || !amount || !date) {
-      Alert.alert('خطأ', 'يرجى ملء جميع الحقول');
-      return;
-    }
-    onAdd({ id: Date.now().toString(), name, amount, date, type });
-    setName('');
-    setAmount('');
-    setDate('');
-    onClose();
-  };
-
-  const getTypeLabel = () => {
-    switch (type) {
-      case 'salary': return 'راتب';
-      case 'support': return 'دعم';
-      case 'bill': return 'فاتورة';
-      default: return 'نوع';
-    }
-  };
-
-  return (
-    <Modal visible={visible} animationType="slide" transparent>
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>إضافة {getTypeLabel()}</Text>
-            <Pressable onPress={onClose}>
-              <Feather name="x" size={24} color={INK} />
-            </Pressable>
-          </View>
-
-          <View style={styles.modalBody}>
-            <Text style={styles.inputLabel}>الاسم</Text>
-            <TextInput
-              style={styles.input}
-              value={name}
-              onChangeText={setName}
-              placeholder="أدخل اسم الصنف"
-              placeholderTextColor={TEXT_SECONDARY}
-            />
-
-            <Text style={styles.inputLabel}>المبلغ</Text>
-            <TextInput
-              style={styles.input}
-              value={amount}
-              onChangeText={setAmount}
-              placeholder="أدخل المبلغ"
-              keyboardType="numeric"
-              placeholderTextColor={TEXT_SECONDARY}
-            />
-
-            <Text style={styles.inputLabel}>تاريخ الاستحقاق</Text>
-            <TextInput
-              style={styles.input}
-              value={date}
-              onChangeText={setDate}
-              placeholder="YYYY-MM-DD"
-              placeholderTextColor={TEXT_SECONDARY}
-            />
-          </View>
-
-          <View style={styles.modalActions}>
-            <Pressable style={styles.modalCancel} onPress={onClose}>
-              <Text style={styles.modalCancelText}>إلغاء</Text>
-            </Pressable>
-            <Pressable style={styles.modalAdd} onPress={handleAdd}>
-              <Text style={styles.modalAddText}>إضافة</Text>
-            </Pressable>
-          </View>
-        </View>
-      </View>
-    </Modal>
-  );
-}
+const MOCK_BILLS = [
+  { id: 1, name: 'فواتير الكهرباء', amount: 350, daysRemaining: 5 },
+  { id: 2, name: 'فاتورة الجوال', amount: 200, daysRemaining: 12 },
+];
 
 export default function SalaryScreen() {
-  const [bills, setBills] = useState(MOCK_BILLS);
+  const [isLoading, setIsLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [addType, setAddType] = useState<FinancialType>('bill');
+  const [newEvent, setNewEvent] = useState({ name: '', amount: '', date: '' });
 
-  const handleAddBill = (item: { id: string; name: string; amount: string; date: string; type: FinancialType }) => {
-    setBills([...bills, { 
-      id: parseInt(item.id) || Date.now(), 
-      name: item.name, 
-      amount: item.amount, 
-      dueDate: item.date, 
-      daysRemaining: Math.floor(Math.random() * 30) // Mock calculation
-    }]);
-  };
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingLogo}>💰</Text>
+        <Text style={styles.loadingText}>جاري تحميل المواعيد المالية...</Text>
+        <ActivityIndicator size="large" color={THEME.primary} />
+      </View>
+    );
+  }
 
   return (
-    <View style={styles.container}>
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>المواعيد المالية</Text>
-          <Pressable style={styles.addButton} onPress={() => { setAddType('bill'); setShowAddModal(true); }}>
-            <Feather name="plus" size={20} color="#FFFFFF" />
-            <Text style={styles.addButtonText}>إضافة</Text>
-          </Pressable>
-        </View>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>💰 المواعيد المالية</Text>
+        <Pressable style={styles.addButton} onPress={() => setShowAddModal(true)}>
+          <Text style={styles.addButtonText}>+ إضافة</Text>
+        </Pressable>
+      </View>
 
-        {/* Salary Card */}
-        <View style={styles.salaryCard}>
-          <View style={styles.salaryHeader}>
-            <View style={[styles.salaryIcon, { backgroundColor: GOLD + '20' }]}>
-              <Text style={{ fontSize: 32 }}>💰</Text>
-            </View>
-            <View style={styles.salaryInfo}>
-              <Text style={styles.salaryLabel}>الراتب القادم</Text>
-              <Text style={styles.salaryAmount}>{MOCK_SALARY.amount} {MOCK_SALARY.currency}</Text>
-            </View>
+      {/* Main Salary Card */}
+      <View style={styles.mainSalaryCard}>
+        <View style={styles.salaryHeader}>
+          <View style={styles.salaryIconContainer}>
+            <Text style={styles.salaryIcon}>💵</Text>
           </View>
-          <View style={styles.salaryDetails}>
-            <View style={styles.salaryDetail}>
-              <Text style={styles.salaryDetailLabel}>الشركة</Text>
-              <Text style={styles.salaryDetailValue}>{MOCK_SALARY.company}</Text>
-            </View>
-            <View style={styles.salaryDetail}>
-              <Text style={styles.salaryDetailLabel}>يوم الدفع</Text>
-              <Text style={styles.salaryDetailValue}>يوم {MOCK_SALARY.paymentDay}</Text>
-            </View>
-            <View style={styles.salaryDetail}>
-              <Text style={styles.salaryDetailLabel}>المتبقي</Text>
-              <Text style={[styles.salaryDetailValue, { color: GOLD }]}>{MOCK_SALARY.daysRemaining} يوم</Text>
-            </View>
+          <View style={styles.salaryInfo}>
+            <Text style={styles.salaryTitle}>{MOCK_SALARY.name}</Text>
+            <Text style={styles.salaryAmount}>{MOCK_SALARY.amount.toLocaleString()} ر.س</Text>
           </View>
         </View>
-
-        {/* Support Card */}
-        <FinancialCard
-          icon="🏠"
-          title="حساب المواطن"
-          amount={`${MOCK_SUPPORT.amount} ${MOCK_SUPPORT.currency}`}
-          date="10 من كل شهر"
-          daysRemaining={MOCK_SUPPORT.daysRemaining}
-          color={SUCCESS}
-        />
-
-        {/* Bills Section */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>الفواتير</Text>
-            <Pressable onPress={() => { setAddType('bill'); setShowAddModal(true); }}>
-              <Feather name="plus-circle" size={24} color={GOLD} />
-            </Pressable>
+        <View style={styles.salaryCountdown}>
+          <View style={styles.countdownItem}>
+            <Text style={styles.countdownNumber}>{MOCK_SALARY.daysRemaining}</Text>
+            <Text style={styles.countdownLabel}>يوم متبقي</Text>
           </View>
-          <View style={styles.billsList}>
-            {bills.map((bill) => (
-              <BillItem
-                key={bill.id}
-                name={bill.name}
-                amount={`${bill.amount} ر.س`}
-                dueDate={bill.dueDate}
-                daysRemaining={bill.daysRemaining}
-                onPress={() => Alert.alert(bill.name, `المبلغ: ${bill.amount} ر.س`)}
-              />
-            ))}
+          <View style={styles.countdownDivider} />
+          <View style={styles.countdownItem}>
+            <Text style={styles.countdownDate}>{MOCK_SALARY.nextDate}</Text>
+            <Text style={styles.countdownLabel}>تاريخ الصرف</Text>
           </View>
         </View>
-
-        {/* Summary */}
-        <View style={styles.summary}>
-          <Text style={styles.summaryTitle}>ملخص الشهر</Text>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>إجمالي المستحق</Text>
-            <Text style={styles.summaryValue}>14,670 ر.س</Text>
+        {MOCK_SALARY.status === 'confirmed' && (
+          <View style={styles.confirmedBadge}>
+            <Text style={styles.confirmedText}>✓ موثق رسمياً</Text>
           </View>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>المتبقي حتى الراتب</Text>
-            <Text style={[styles.summaryValue, { color: GOLD }]}>16 يوم</Text>
-          </View>
-        </View>
+        )}
+      </View>
 
-        {/* Bottom padding */}
-        <View style={{ height: 100 }} />
-      </ScrollView>
+      {/* Support Programs */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>🏛️ برامج الدعم</Text>
+        {MOCK_SUPPORT.map((item) => (
+          <View key={item.id} style={styles.supportCard}>
+            <View style={styles.supportIconContainer}>
+              <Text style={styles.supportIcon}>🏛️</Text>
+            </View>
+            <View style={styles.supportInfo}>
+              <Text style={styles.supportName}>{item.name}</Text>
+              <Text style={styles.supportAmount}>{item.amount.toLocaleString()} ر.س</Text>
+            </View>
+            <View style={styles.supportCountdown}>
+              <Text style={styles.supportDays}>{item.daysRemaining}</Text>
+              <Text style={styles.supportDaysLabel}>يوم</Text>
+            </View>
+            {item.status === 'pending' && (
+              <View style={styles.pendingBadge}>
+                <Text style={styles.pendingText}>قيد المراجعة</Text>
+              </View>
+            )}
+          </View>
+        ))}
+      </View>
+
+      {/* Bills Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>📄 الفواتير والالتزامات</Text>
+        {MOCK_BILLS.map((item) => (
+          <View key={item.id} style={styles.billCard}>
+            <View style={styles.billInfo}>
+              <Text style={styles.billName}>{item.name}</Text>
+              <Text style={styles.billAmount}>{item.amount} ر.س</Text>
+            </View>
+            <View style={styles.billCountdown}>
+              <Text style={styles.billDays}>متبقي {item.daysRemaining} يوم</Text>
+            </View>
+          </View>
+        ))}
+      </View>
+
+      {/* Footer spacing */}
+      <View style={styles.footer} />
 
       {/* Add Modal */}
-      <AddModal
-        visible={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        onAdd={handleAddBill}
-        type={addType}
-      />
-    </View>
+      <Modal visible={showAddModal} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>إضافة موعد مالي جديد</Text>
+            
+            <View style={styles.formGroup}>
+              <Text style={styles.formLabel}>اسم الموعد</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="مثال: راتب شهر محرم"
+                value={newEvent.name}
+                onChangeText={(text) => setNewEvent({ ...newEvent, name: text })}
+              />
+            </View>
+            
+            <View style={styles.formGroup}>
+              <Text style={styles.formLabel}>المبلغ (اختياري)</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="0"
+                keyboardType="numeric"
+                value={newEvent.amount}
+                onChangeText={(text) => setNewEvent({ ...newEvent, amount: text })}
+              />
+            </View>
+            
+            <View style={styles.formGroup}>
+              <Text style={styles.formLabel}>تاريخ الاستحقاق</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="YYYY-MM-DD"
+                value={newEvent.date}
+                onChangeText={(text) => setNewEvent({ ...newEvent, date: text })}
+              />
+            </View>
+
+            <View style={styles.modalButtons}>
+              <Pressable style={styles.cancelButton} onPress={() => setShowAddModal(false)}>
+                <Text style={styles.cancelButtonText}>إلغاء</Text>
+              </Pressable>
+              <Pressable style={styles.submitButton}>
+                <Text style={styles.submitButtonText}>إضافة</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: PAPER,
+    paddingBottom: 120,
+    backgroundColor: THEME.background,
+    direction: I18nManager.isRTL ? 'rtl' : 'ltr',
   },
-  scrollView: {
+  loadingContainer: {
     flex: 1,
+    paddingBottom: 120,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: THEME.background,
   },
-  scrollContent: {
-    paddingHorizontal: 16,
-    paddingTop: 60,
+  loadingLogo: {
+    fontSize: 64,
+    marginBottom: 20,
   },
+  loadingText: {
+    fontSize: 18,
+    color: THEME.textSecondary,
+    marginBottom: 20,
+  },
+
+  // Header
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    paddingHorizontal: 20,
+    paddingTop: 60,
+    paddingBottom: 20,
   },
   headerTitle: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: INK,
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: THEME.text,
   },
   addButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: GOLD,
+    backgroundColor: THEME.primary,
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 8,
     borderRadius: 12,
-    gap: 6,
   },
   addButtonText: {
-    color: '#FFFFFF',
+    color: '#FFF',
+    fontWeight: 'bold',
     fontSize: 14,
-    fontWeight: '600',
   },
-  salaryCard: {
-    backgroundColor: CREAM,
+
+  // Main Salary Card
+  mainSalaryCard: {
+    backgroundColor: THEME.surface,
+    marginHorizontal: 16,
     borderRadius: 20,
     padding: 20,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: GOLD + '30',
+    borderWidth: 2,
+    borderColor: THEME.primary,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
   },
   salaryHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 16,
   },
-  salaryIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 18,
+  salaryIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: THEME.primary + '20',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginLeft: 16,
+  },
+  salaryIcon: {
+    fontSize: 28,
   },
   salaryInfo: {
     flex: 1,
+    paddingBottom: 120,
   },
-  salaryLabel: {
-    fontSize: 14,
-    color: TEXT_SECONDARY,
+  salaryTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: THEME.text,
     marginBottom: 4,
   },
   salaryAmount: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: INK,
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: THEME.primary,
   },
-  salaryDetails: {
+  salaryCountdown: {
     flexDirection: 'row',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(201,160,99,0.15)',
-    paddingTop: 16,
-    marginTop: 8,
-  },
-  salaryDetail: {
-    flex: 1,
+    justifyContent: 'space-around',
     alignItems: 'center',
-  },
-  salaryDetailLabel: {
-    fontSize: 12,
-    color: TEXT_SECONDARY,
-    marginBottom: 4,
-  },
-  salaryDetailValue: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: INK,
-  },
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: CREAM,
-    borderRadius: 16,
+    backgroundColor: THEME.background,
+    borderRadius: 12,
     padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(201,160,99,0.10)',
   },
-  cardIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    justifyContent: 'center',
+  countdownItem: {
     alignItems: 'center',
-    marginRight: 14,
   },
-  cardContent: {
-    flex: 1,
+  countdownNumber: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: THEME.primary,
   },
-  cardTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: INK,
-    marginBottom: 4,
+  countdownDate: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: THEME.text,
   },
-  cardDetails: {
-    flexDirection: 'row',
-    gap: 12,
+  countdownLabel: {
+    fontSize: 12,
+    color: THEME.textSecondary,
+    marginTop: 4,
   },
-  cardAmount: {
-    fontSize: 14,
-    color: TEXT_SECONDARY,
+  countdownDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: THEME.border,
   },
-  cardDate: {
-    fontSize: 14,
-    color: TEXT_SECONDARY,
-  },
-  cardBadge: {
+  confirmedBadge: {
+    backgroundColor: THEME.success + '20',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
+    alignSelf: 'flex-start',
+    marginTop: 12,
   },
-  cardBadgeText: {
-    fontSize: 13,
+  confirmedText: {
+    color: THEME.success,
     fontWeight: '600',
+    fontSize: 12,
   },
+
+  // Sections
   section: {
-    marginBottom: 20,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
+    marginTop: 24,
+    paddingHorizontal: 16,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '700',
-    color: INK,
+    fontWeight: 'bold',
+    color: THEME.text,
+    marginBottom: 12,
   },
-  billsList: {
-    gap: 10,
-  },
-  billItem: {
+
+  // Support Cards
+  supportCard: {
+    backgroundColor: THEME.surface,
+    borderRadius: 16,
+    padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: CREAM,
-    borderRadius: 14,
-    padding: 14,
+    marginBottom: 8,
     borderWidth: 1,
-    borderColor: 'rgba(201,160,99,0.10)',
+    borderColor: THEME.border,
   },
-  billIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    backgroundColor: PAPER,
+  supportIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: THEME.success + '20',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginLeft: 12,
   },
-  billContent: {
+  supportIcon: {
+    fontSize: 22,
+  },
+  supportInfo: {
     flex: 1,
+    paddingBottom: 120,
   },
-  billName: {
+  supportName: {
     fontSize: 15,
     fontWeight: '600',
-    color: INK,
+    color: THEME.text,
+    marginBottom: 2,
   },
-  billDue: {
-    fontSize: 12,
-    color: TEXT_SECONDARY,
-    marginTop: 2,
+  supportAmount: {
+    fontSize: 14,
+    color: THEME.success,
+    fontWeight: '600',
   },
-  billRight: {
-    alignItems: 'flex-end',
+  supportCountdown: {
+    alignItems: 'center',
+    marginLeft: 12,
+  },
+  supportDays: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: THEME.primary,
+  },
+  supportDaysLabel: {
+    fontSize: 10,
+    color: THEME.textSecondary,
+  },
+  pendingBadge: {
+    backgroundColor: THEME.error + '20',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    marginRight: 8,
+  },
+  pendingText: {
+    color: THEME.error,
+    fontSize: 10,
+    fontWeight: '600',
+  },
+
+  // Bills
+  billCard: {
+    backgroundColor: THEME.surface,
+    borderRadius: 12,
+    padding: 14,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: THEME.border,
+  },
+  billInfo: {},
+  billName: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: THEME.text,
+    marginBottom: 2,
   },
   billAmount: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: INK,
+    fontSize: 13,
+    color: THEME.textSecondary,
+  },
+  billCountdown: {
+    backgroundColor: THEME.background,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
   },
   billDays: {
     fontSize: 12,
-    fontWeight: '600',
-    marginTop: 2,
+    color: THEME.textSecondary,
+    fontWeight: '500',
   },
-  summary: {
-    backgroundColor: CREAM,
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(201,160,99,0.15)',
-  },
-  summaryTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: INK,
-    marginBottom: 16,
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  summaryLabel: {
-    fontSize: 14,
-    color: TEXT_SECONDARY,
-  },
-  summaryValue: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: INK,
-  },
+
+  // Modal
   modalOverlay: {
     flex: 1,
+    paddingBottom: 120,
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: PAPER,
-    borderTopLeftRadius: 24,
+    backgroundColor: THEME.surface,
     borderTopRightRadius: 24,
+    borderTopLeftRadius: 24,
+    padding: 24,
     paddingBottom: 40,
   },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(201,160,99,0.15)',
-  },
   modalTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: INK,
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: THEME.text,
+    textAlign: 'center',
+    marginBottom: 20,
   },
-  modalBody: {
-    padding: 20,
+  formGroup: {
+    marginBottom: 16,
   },
-  inputLabel: {
+  formLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: INK,
+    color: THEME.text,
     marginBottom: 8,
   },
   input: {
-    backgroundColor: CREAM,
+    backgroundColor: THEME.background,
     borderRadius: 12,
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     fontSize: 16,
-    color: INK,
-    marginBottom: 16,
+    color: THEME.text,
     borderWidth: 1,
-    borderColor: 'rgba(201,160,99,0.15)',
+    borderColor: THEME.border,
+    direction: 'rtl',
+    textAlign: 'right',
   },
-  modalActions: {
+  modalButtons: {
     flexDirection: 'row',
-    paddingHorizontal: 20,
     gap: 12,
+    marginTop: 16,
   },
-  modalCancel: {
+  cancelButton: {
     flex: 1,
-    backgroundColor: CREAM,
+    paddingBottom: 120,
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: THEME.border,
   },
-  modalCancelText: {
+  cancelButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: TEXT_SECONDARY,
+    color: THEME.text,
   },
-  modalAdd: {
+  submitButton: {
     flex: 1,
-    backgroundColor: GOLD,
+    paddingBottom: 120,
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
+    backgroundColor: THEME.primary,
   },
-  modalAddText: {
+  submitButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: '#FFF',
+  },
+
+  footer: {
+    height: 100,
   },
 });
