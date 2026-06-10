@@ -1,122 +1,261 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_theme.dart';
 
-class MoreScreen extends StatelessWidget {
+/// More Screen - Luxury Saudi Design
+class MoreScreen extends ConsumerWidget {
   const MoreScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      body: SafeArea(
-        bottom: false,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 40),
-              const Text(
-                'المزيد',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.ink,
-                ),
-              ),
-              const SizedBox(height: 24),
-              // Daily Card Section
-              _buildDailyCardRow(context),
-              const SizedBox(height: 24),
-              // Account Section
-              _buildSectionTitle('الحساب'),
-              _buildMenuList([
-                _MenuItem(
-                  icon: '👤',
-                  label: 'حسابي',
-                  description: 'الملف الشخصي والإعدادات',
-                  onTap: () => context.pushNamed('account'),
-                ),
-                _MenuItem(
-                  icon: '🔔',
-                  label: 'الإشعارات',
-                  description: 'إدارة التنبيهات',
-                  onTap: () => _showComingSoon(context),
-                ),
-              ]),
-              const SizedBox(height: 24),
-              // Settings Section
-              _buildSectionTitle('الإعدادات'),
-              _buildMenuList([
-                _MenuItem(
-                  icon: '⚙️',
-                  label: 'إعدادات التطبيق',
-                  description: 'المظهر والإشعارات',
-                  onTap: () => context.pushNamed('settings'),
-                ),
-                _MenuItem(
-                  icon: '🌍',
-                  label: 'المدينة',
-                  description: 'الرياض',
-                  onTap: () => _showComingSoon(context),
-                ),
-              ]),
-              const SizedBox(height: 24),
-              // Support Section
-              _buildSectionTitle('الدعم'),
-              _buildMenuList([
-                _MenuItem(
-                  icon: '💬',
-                  label: 'تواصل معنا',
-                  description: 'مساعدة واستفسارات',
-                  onTap: () => _showSupportDialog(context),
-                ),
-                _MenuItem(
-                  icon: 'ℹ️',
-                  label: 'عن التطبيق',
-                  onTap: () => _showAboutDialog(context),
-                ),
-              ]),
-              const SizedBox(height: 24),
-              // Actions Section
-              _buildMenuList([
-                _MenuItem(
-                  icon: '📤',
-                  label: 'مشاركة التطبيق',
-                  onTap: () => _shareApp(context),
-                ),
-                _MenuItem(
-                  icon: '🚪',
-                  label: 'تسجيل الخروج',
-                  isDanger: true,
-                  onTap: () => _showLogoutDialog(context),
-                ),
-              ]),
-              const SizedBox(height: 24),
-              // Footer
-              Center(
-                child: Column(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: AppColors.backgroundGradient,
+        ),
+        child: SafeArea(
+          bottom: false,
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: AppSpacing.xl),
+                _buildHeader(),
+                const SizedBox(height: AppSpacing.lg),
+                _buildQuickLinks(context),
+                const SizedBox(height: AppSpacing.lg),
+                _buildSettingsSection(context),
+                const SizedBox(height: AppSpacing.lg),
+                _buildAppInfo(),
+                const SizedBox(height: 100),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'المزيد',
+          style: GoogleFonts.cairo(
+            fontSize: 28,
+            fontWeight: FontWeight.w800,
+            color: AppColors.ink,
+            height: 1.2,
+          ),
+        ),
+        Text(
+          'إعدادات وتطبيقات أخرى',
+          style: GoogleFonts.cairo(
+            fontSize: 14,
+            color: AppColors.muted,
+            height: 1.4,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQuickLinks(BuildContext context) {
+    final links = [
+      {'icon': Icons.notifications_outlined, 'title': 'الإشعارات', 'subtitle': 'إدارة التنبيهات'},
+      {'icon': Icons.star_outline_rounded, 'title': 'البطاقة اليومية', 'subtitle': 'إنشاء بطاقة مخصصة'},
+      {'icon': Icons.share_outlined, 'title': 'مشاركة التطبيق', 'subtitle': 'شارك مع أصدقائك'},
+      {'icon': Icons.help_outline_rounded, 'title': 'المساعدة', 'subtitle': 'تواصل معنا'},
+    ];
+
+    return Column(
+      children: links.map((link) {
+        return Container(
+          margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(AppRadius.xl),
+            border: Border.all(color: AppColors.border, width: 1),
+            boxShadow: AppShadows.card,
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {},
+              borderRadius: BorderRadius.circular(AppRadius.xl),
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Row(
                   children: [
-                    const Text(
-                      'مواعيدك v1.0.0',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.ink,
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: AppColors.gold.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(AppRadius.md),
+                      ),
+                      child: Icon(
+                        link['icon'] as IconData,
+                        color: AppColors.gold,
+                        size: 24,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'كل مواعيدك في مكان واحد',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            link['title'] as String,
+                            style: GoogleFonts.cairo(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.ink,
+                            ),
+                          ),
+                          Text(
+                            link['subtitle'] as String,
+                            style: GoogleFonts.cairo(
+                              fontSize: 13,
+                              color: AppColors.muted,
+                            ),
+                          ),
+                        ],
                       ),
+                    ),
+                    const Icon(
+                      Icons.chevron_left_rounded,
+                      color: AppColors.gold,
+                      size: 24,
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 100),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildSettingsSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              decoration: BoxDecoration(
+                color: AppColors.goldDark.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(AppRadius.md),
+              ),
+              child: const Icon(
+                Icons.settings_outlined,
+                color: AppColors.goldDark,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Text(
+              'الإعدادات',
+              style: GoogleFonts.cairo(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppColors.ink,
+                height: 1.4,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Container(
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(AppRadius.xxl),
+            border: Border.all(color: AppColors.border, width: 1),
+            boxShadow: AppShadows.card,
+          ),
+          child: Column(
+            children: [
+              _buildSettingItem(
+                icon: Icons.dark_mode_outlined,
+                title: 'المظهر',
+                subtitle: 'فاتح',
+                onTap: () {},
+              ),
+              Container(height: 1, color: AppColors.border, margin: const EdgeInsets.symmetric(horizontal: 16)),
+              _buildSettingItem(
+                icon: Icons.language_outlined,
+                title: 'اللغة',
+                subtitle: 'العربية',
+                onTap: () {},
+              ),
+              Container(height: 1, color: AppColors.border, margin: const EdgeInsets.symmetric(horizontal: 16)),
+              _buildSettingItem(
+                icon: Icons.notifications_outlined,
+                title: 'التنبيهات',
+                subtitle: 'مفعّلة',
+                onTap: () {},
+              ),
+              Container(height: 1, color: AppColors.border, margin: const EdgeInsets.symmetric(horizontal: 16)),
+              _buildSettingItem(
+                icon: Icons.lock_outline,
+                title: 'الخصوصية',
+                subtitle: 'إدارة البيانات',
+                onTap: () => context.pushNamed('privacy'),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSettingItem({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Row(
+            children: [
+              Icon(icon, color: AppColors.goldDark, size: 24),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Text(
+                  title,
+                  style: GoogleFonts.cairo(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.ink,
+                  ),
+                ),
+              ),
+              Text(
+                subtitle,
+                style: GoogleFonts.cairo(
+                  fontSize: 13,
+                  color: AppColors.muted,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              const Icon(
+                Icons.chevron_left_rounded,
+                color: AppColors.muted,
+                size: 20,
+              ),
             ],
           ),
         ),
@@ -124,253 +263,86 @@ class MoreScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Text(
-        title.toUpperCase(),
-        style: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          color: AppColors.textSecondary,
-          letterSpacing: 0.5,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDailyCardRow(BuildContext context) {
-    return GestureDetector(
-      onTap: () => context.pushNamed('daily-card'),
-      child: Container(
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          color: AppColors.cream,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.borderGold),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.brown.withOpacity(0.08),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: AppColors.gold.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: const Center(
-                child: Text('🎴', style: TextStyle(fontSize: 28)),
-              ),
-            ),
-            const SizedBox(width: 14),
-            const Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'البطاقة اليومية',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.ink,
-                    ),
-                  ),
-                  SizedBox(height: 2),
-                  Text(
-                    'شارك يومك مع الآخرين',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(
-              Icons.chevron_left,
-              color: AppColors.brown,
-              size: 22,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMenuList(List<_MenuItem> items) {
+  Widget _buildAppInfo() {
     return Container(
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.cream,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(AppRadius.xxl),
+        border: Border.all(color: AppColors.border, width: 1),
+        boxShadow: AppShadows.card,
       ),
       child: Column(
-        children: items.asMap().entries.map((entry) {
-          final index = entry.key;
-          final item = entry.value;
-          return Column(
-            children: [
-              _buildMenuRow(item),
-              if (index < items.length - 1)
-                const Divider(height: 1, indent: 70),
-            ],
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildMenuRow(_MenuItem item) {
-    return InkWell(
-      onTap: item.onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-        child: Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: item.isDanger
-                    ? AppColors.error.withOpacity(0.1)
-                    : AppColors.paper,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Center(
-                child: Text(
-                  item.icon,
-                  style: const TextStyle(fontSize: 22),
-                ),
-              ),
+        children: [
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              gradient: AppColors.goldGradient,
+              borderRadius: BorderRadius.circular(AppRadius.lg),
             ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.label,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: item.isDanger ? AppColors.error : AppColors.ink,
-                    ),
-                  ),
-                  if (item.description != null) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      item.description!,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
+            child: const Icon(
+              Icons.calendar_month_rounded,
+              color: Colors.white,
+              size: 32,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            'مواعيدك',
+            style: GoogleFonts.cairo(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: AppColors.ink,
+            ),
+          ),
+          Text(
+            'الإصدار 1.0.0',
+            style: GoogleFonts.cairo(
+              fontSize: 13,
+              color: AppColors.muted,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Container(
+            height: 1,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.transparent,
+                  AppColors.gold.withValues(alpha: 0.3),
+                  Colors.transparent,
                 ],
               ),
             ),
-            Icon(
-              Icons.chevron_left,
-              color: item.isDanger ? AppColors.error : AppColors.textSecondary,
-            ),
-          ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildFooterLink('الشروط', () {}),
+              Container(width: 1, height: 16, color: AppColors.border, margin: const EdgeInsets.symmetric(horizontal: 16)),
+              _buildFooterLink('الخصوصية', () {}),
+              Container(width: 1, height: 16, color: AppColors.border, margin: const EdgeInsets.symmetric(horizontal: 16)),
+              _buildFooterLink('الدعم', () {}),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFooterLink(String text, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Text(
+        text,
+        style: GoogleFonts.cairo(
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+          color: AppColors.gold,
         ),
       ),
     );
   }
-
-  void _showComingSoon(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('قريباً')),
-    );
-  }
-
-  void _showSupportDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('تواصل معنا'),
-        content: const Text('support@mawaeedak.app'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('حسناً'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showAboutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('عن التطبيق'),
-        content: const Text(
-          'مواعيدك v1.0.0\n\nكل مواعيدك في مكان واحد\n\n© 2026 مواعيدك',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('حسناً'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _shareApp(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('جاري مشاركة التطبيق...')),
-    );
-  }
-
-  void _showLogoutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('تسجيل الخروج'),
-        content: const Text('هل أنت متأكد من تسجيل الخروج؟'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('تم تسجيل الخروج بنجاح')),
-              );
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text('تسجيل الخروج'),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MenuItem {
-  final String icon;
-  final String label;
-  final String? description;
-  final VoidCallback onTap;
-  final bool isDanger;
-
-  const _MenuItem({
-    required this.icon,
-    required this.label,
-    this.description,
-    required this.onTap,
-    this.isDanger = false,
-  });
 }
