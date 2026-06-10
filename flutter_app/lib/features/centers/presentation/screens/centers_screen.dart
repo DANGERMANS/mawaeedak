@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_theme.dart';
 
-/// Centers Screen - Luxury Saudi Design
+/// Centers Screen - 100% Web Design Match
 class CentersScreen extends ConsumerWidget {
   const CentersScreen({super.key});
 
@@ -19,13 +18,13 @@ class CentersScreen extends ConsumerWidget {
           bottom: false,
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.all(AppSpacing.md),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: AppSpacing.xl),
+                const SizedBox(height: 24),
                 _buildHeader(),
-                const SizedBox(height: AppSpacing.lg),
+                const SizedBox(height: 20),
                 _buildCentersList(context),
                 const SizedBox(height: 100),
               ],
@@ -49,12 +48,12 @@ class CentersScreen extends ConsumerWidget {
             height: 1.2,
           ),
         ),
+        const SizedBox(height: 4),
         Text(
           'جميع المراكز الحكومية في مكان واحد',
           style: GoogleFonts.cairo(
             fontSize: 14,
             color: AppColors.muted,
-            height: 1.4,
           ),
         ),
       ],
@@ -69,26 +68,31 @@ class CentersScreen extends ConsumerWidget {
       {'icon': Icons.newspaper_rounded, 'title': 'مركز الأخبار', 'subtitle': 'الأخبار والتصريحات', 'count': '4', 'color': AppColors.goldDark},
       {'icon': Icons.people_rounded, 'title': 'مركز التهنئة', 'subtitle': 'المناسبات والأعياد', 'count': '3', 'color': AppColors.warning},
       {'icon': Icons.business_center_rounded, 'title': 'مركز الشكاوى', 'subtitle': 'تقديم الشكاوى ومتابعتها', 'count': '6', 'color': AppColors.error},
-      {'icon': Icons.work_rounded, 'title': 'مركز الوظائف', 'subtitle': 'فرص العمل المتاحة', 'count': '9', 'color': AppColors.gold},
     ];
 
     return Column(
       children: centers.map((center) {
         return Container(
-          margin: const EdgeInsets.only(bottom: AppSpacing.md),
+          margin: const EdgeInsets.only(bottom: 16),
           decoration: BoxDecoration(
-            color: AppColors.card,
-            borderRadius: BorderRadius.circular(AppRadius.xxl),
-            border: Border.all(color: AppColors.border, width: 1),
-            boxShadow: AppShadows.card,
+            color: const Color(0xFFFFFCF7),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: const Color(0x3DC9A063), width: 1),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x1A8A6B3D),
+                blurRadius: 30,
+                offset: Offset(0, 12),
+              ),
+            ],
           ),
           child: Material(
             color: Colors.transparent,
             child: InkWell(
               onTap: () {},
-              borderRadius: BorderRadius.circular(AppRadius.xxl),
+              borderRadius: BorderRadius.circular(22),
               child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.lg),
+                padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
                     Container(
@@ -96,7 +100,7 @@ class CentersScreen extends ConsumerWidget {
                       height: 56,
                       decoration: BoxDecoration(
                         color: (center['color'] as Color).withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(AppRadius.lg),
+                        borderRadius: BorderRadius.circular(16),
                       ),
                       child: Icon(
                         center['icon'] as IconData,
@@ -104,7 +108,7 @@ class CentersScreen extends ConsumerWidget {
                         size: 28,
                       ),
                     ),
-                    const SizedBox(width: AppSpacing.md),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -113,7 +117,7 @@ class CentersScreen extends ConsumerWidget {
                             center['title'] as String,
                             style: GoogleFonts.cairo(
                               fontSize: 17,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w800,
                               color: AppColors.ink,
                             ),
                           ),
@@ -130,7 +134,7 @@ class CentersScreen extends ConsumerWidget {
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
                               color: AppColors.gold.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(AppRadius.sm),
+                              borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
                               '${center['count']} خدمات',
