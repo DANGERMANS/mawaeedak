@@ -2,13 +2,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/models.dart';
 import '../../../data/services/api_service.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../services/schedule_service.dart';
 
-/// API Service Provider
 final apiServiceProvider = Provider<ApiService>((ref) {
   return ApiService();
 });
 
-/// Prayer Times Provider - Real API with local fallback
 final prayerTimesProvider = StateNotifierProvider<PrayerTimesNotifier, PrayerTimes>((ref) {
   return PrayerTimesNotifier(ref);
 });
@@ -28,7 +27,7 @@ class PrayerTimesNotifier extends StateNotifier<PrayerTimes> {
         date: DateTime.now().toIso8601String().split('T')[0],
       );
       state = times;
-    } catch (e) {
+    } catch (_) {
       state = PrayerTimes.mock;
     }
   }
@@ -38,99 +37,10 @@ class PrayerTimesNotifier extends StateNotifier<PrayerTimes> {
   }
 }
 
-class ScheduleApiSetting {
-  final bool enabled;
-  final bool showOnHome;
-
-  const ScheduleApiSetting({required this.enabled, required this.showOnHome});
-}
-
-class ScheduleItemDefinition {
-  final String id;
-  final String name;
-  final int paymentDay;
-  final String type;
-  final ScheduleApiSetting setting;
-
-  const ScheduleItemDefinition({
-    required this.id,
-    required this.name,
-    required this.paymentDay,
-    required this.type,
-    required this.setting,
-  });
-}
-
-class ScheduleService {
-  static const Map<String, ScheduleApiSetting> apiSettings = {
-    'salary': ScheduleApiSetting(enabled: true, showOnHome: true),
-    'citizenAccount': ScheduleApiSetting(enabled: true, showOnHome: true),
-    'socialSecurity': ScheduleApiSetting(enabled: true, showOnHome: true),
-    'hafiz': ScheduleApiSetting(enabled: true, showOnHome: true),
-    'reef': ScheduleApiSetting(enabled: false, showOnHome: false),
-    'sakani': ScheduleApiSetting(enabled: false, showOnHome: false),
-    'tamheer': ScheduleApiSetting(enabled: false, showOnHome: false),
-    'productive': ScheduleApiSetting(enabled: false, showOnHome: false),
-  };
-
-  static const List<ScheduleItemDefinition> definitions = [
-    ScheduleItemDefinition(id: 'salary', name: 'الراتب', paymentDay: 27, type: 'salary', setting: ScheduleApiSetting(enabled: true, showOnHome: true)),
-    ScheduleItemDefinition(id: 'citizenAccount', name: 'حساب المواطن', paymentDay: 10, type: 'support', setting: ScheduleApiSetting(enabled: true, showOnHome: true)),
-    ScheduleItemDefinition(id: 'socialSecurity', name: 'الضمان الاجتماعي', paymentDay: 1, type: 'social', setting: ScheduleApiSetting(enabled: true, showOnHome: true)),
-    ScheduleItemDefinition(id: 'hafiz', name: 'حافز', paymentDay: 5, type: 'support', setting: ScheduleApiSetting(enabled: true, showOnHome: true)),
-    ScheduleItemDefinition(id: 'reef', name: 'دعم ريف', paymentDay: 1, type: 'support', setting: ScheduleApiSetting(enabled: false, showOnHome: false)),
-    ScheduleItemDefinition(id: 'sakani', name: 'الدعم السكني', paymentDay: 24, type: 'housing', setting: ScheduleApiSetting(enabled: false, showOnHome: false)),
-    ScheduleItemDefinition(id: 'tamheer', name: 'تمهير', paymentDay: 1, type: 'support', setting: ScheduleApiSetting(enabled: false, showOnHome: false)),
-    ScheduleItemDefinition(id: 'productive', name: 'دعم الأسر المنتجة', paymentDay: 1, type: 'support', setting: ScheduleApiSetting(enabled: false, showOnHome: false)),
-  ];
-
-  List<FinancialEvent> activeItems() {
-    final today = DateTime.now();
-    final items = definitions
-        .where((definition) => definition.setting.enabled)
-        .map((definition) => _buildEvent(definition, today))
-        .toList();
-    items.sort((a, b) => a.daysRemaining.compareTo(b.daysRemaining));
-    return items;
-  }
-
-  List<FinancialEvent> homeItems() {
-    final allowed = definitions
-        .where((definition) => definition.setting.enabled && definition.setting.showOnHome)
-        .map((definition) => definition.id)
-        .toSet();
-    return activeItems().where((event) => allowed.contains(event.id)).toList();
-  }
-
-  FinancialEvent? nearestItem() {
-    final items = activeItems();
-    if (items.isEmpty) return null;
-    return items.first;
-  }
-
-  FinancialEvent _buildEvent(ScheduleItemDefinition definition, DateTime today) {
-    var target = DateTime(today.year, today.month, definition.paymentDay);
-    final todayOnly = DateTime(today.year, today.month, today.day);
-    if (target.isBefore(todayOnly)) {
-      target = DateTime(today.year, today.month + 1, definition.paymentDay);
-    }
-    final remaining = target.difference(todayOnly).inDays;
-    return FinancialEvent(
-      id: definition.id,
-      name: definition.name,
-      nameAr: definition.name,
-      date: target.toIso8601String().split('T').first,
-      type: definition.type,
-      daysRemaining: remaining,
-    );
-  }
-}
-
 final scheduleServiceProvider = Provider<ScheduleService>((ref) {
   return ScheduleService();
 });
 
-/// Financial Events Provider - unified salary/support schedule
 final financialEventsProvider = StateNotifierProvider<FinancialEventsNotifier, List<FinancialEvent>>((ref) {
   return FinancialEventsNotifier(ref);
 });
@@ -147,19 +57,14 @@ class FinancialEventsNotifier extends StateNotifier<List<FinancialEvent>> {
   final Ref _ref;
 
   FinancialEventsNotifier(this._ref) : super(const []) {
-    _loadFinancialEvents();
-  }
-
-  Future<void> _loadFinancialEvents() async {
-    state = _ref.read(scheduleServiceProvider).activeItems();
+    refresh();
   }
 
   void refresh() {
-    state = _ref.read(scheduleServiceProvider).activeItems();
+    state = _ref.read(scheduleServiceProvider).salaryListItems();
   }
 }
 
-/// Appointments Provider - Real API with local fallback
 final appointmentsProvider = StateNotifierProvider<AppointmentsNotifier, List<Appointment>>((ref) {
   return AppointmentsNotifier(ref);
 });
@@ -176,7 +81,7 @@ class AppointmentsNotifier extends StateNotifier<List<Appointment>> {
       final api = _ref.read(apiServiceProvider);
       final appointments = await api.getAppointments();
       state = appointments;
-    } catch (e) {}
+    } catch (_) {}
   }
 
   void addAppointment(Appointment appointment) {
@@ -220,7 +125,6 @@ final _mockAppointments = [
   ),
 ];
 
-/// Service Centers Provider - Real API with local fallback
 final serviceCentersProvider = StateNotifierProvider<ServiceCentersNotifier, List<ServiceCenter>>((ref) {
   return ServiceCentersNotifier(ref);
 });
@@ -250,11 +154,10 @@ class ServiceCentersNotifier extends StateNotifier<List<ServiceCenter>> {
       if (centers.isNotEmpty) {
         state = centers;
       }
-    } catch (e) {}
+    } catch (_) {}
   }
 }
 
-/// User Provider - Real API with local fallback
 final userProvider = StateNotifierProvider<UserNotifier, User>((ref) {
   return UserNotifier(ref);
 });
@@ -271,7 +174,7 @@ class UserNotifier extends StateNotifier<User> {
       final api = _ref.read(apiServiceProvider);
       final user = await api.getUserProfile();
       state = user;
-    } catch (e) {}
+    } catch (_) {}
   }
 
   void updateUser(User user) {
@@ -310,7 +213,6 @@ class UserNotifier extends StateNotifier<User> {
   }
 }
 
-/// Settings Provider
 class AppSettings {
   final bool prayerNotifications;
   final bool financialNotifications;
@@ -379,15 +281,12 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   }
 }
 
-/// Selected Date Provider for Calendar
 final selectedDateProvider = StateProvider<DateTime>((ref) {
   return DateTime.now();
 });
 
-/// Current Tab Index Provider
 final currentTabIndexProvider = StateProvider<int>((ref) => 0);
 
-/// Daily Message Provider
 final dailyMessageProvider = Provider<String>((ref) {
   return AppConstants.defaultDailyMessage;
 });
