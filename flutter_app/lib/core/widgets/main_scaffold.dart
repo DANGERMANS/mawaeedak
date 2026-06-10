@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/constants/app_constants.dart';
 
-/// Main Scaffold with Bottom Navigation Bar
+/// Main Scaffold with Bottom Navigation Bar and Drawer
 class MainScaffold extends StatelessWidget {
   final Widget child;
 
@@ -14,7 +14,244 @@ class MainScaffold extends StatelessWidget {
     return Scaffold(
       body: child,
       extendBody: true,
+      drawer: const AppDrawer(),
       bottomNavigationBar: const _CustomBottomNavBar(),
+    );
+  }
+}
+
+class AppDrawer extends StatelessWidget {
+  const AppDrawer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final dayName = AppConstants.arabicDays[now.weekday % 7];
+    final monthName = AppConstants.arabicMonths[now.month - 1];
+
+    return Drawer(
+      backgroundColor: AppColors.paper,
+      child: SafeArea(
+        child: Column(
+          children: [
+            // Header
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0xFFF5EFE4),
+                    Color(0xFFFAF7F2),
+                  ],
+                ),
+              ),
+              child: Column(
+                children: [
+                  // Logo
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: AppColors.cream,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: AppColors.gold,
+                        width: 2,
+                      ),
+                    ),
+                    child: const Center(
+                      child: Text('🕌', style: TextStyle(fontSize: 40)),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // App Name
+                  const Text(
+                    'مواعيدك',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.ink,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'كل مواعيدك.. في مكان واحد',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Welcome Card
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.gold.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: AppColors.borderGold,
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        const Text(
+                          'مرحباً بك',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.gold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'نسعد بوجودك معنا',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppColors.brown,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '$dayName، ${now.day} $monthName ${now.year}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Menu Items
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  _buildDrawerItem(
+                    context,
+                    icon: Icons.home_outlined,
+                    label: 'الرئيسية',
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.go('/home');
+                    },
+                  ),
+                  _buildDrawerItem(
+                    context,
+                    icon: Icons.card_giftcard_outlined,
+                    label: 'البطاقة اليومية',
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.push('/daily-card');
+                    },
+                  ),
+                  const Divider(height: 32),
+                  _buildDrawerItem(
+                    context,
+                    icon: Icons.share_outlined,
+                    label: 'مشاركة التطبيق',
+                    onTap: () {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('جاري مشاركة التطبيق...')),
+                      );
+                    },
+                  ),
+                  _buildDrawerItem(
+                    context,
+                    icon: Icons.privacy_tip_outlined,
+                    label: 'سياسة الخصوصية',
+                    onTap: () {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('قريباً')),
+                      );
+                    },
+                  ),
+                  _buildDrawerItem(
+                    context,
+                    icon: Icons.description_outlined,
+                    label: 'الشروط والأحكام',
+                    onTap: () {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('قريباً')),
+                      );
+                    },
+                  ),
+                  _buildDrawerItem(
+                    context,
+                    icon: Icons.help_outline,
+                    label: 'المساعدة والدعم',
+                    onTap: () {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('قريباً')),
+                      );
+                    },
+                  ),
+                  const Divider(height: 32),
+                  _buildDrawerItem(
+                    context,
+                    icon: Icons.login,
+                    label: 'تسجيل الدخول',
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.push('/login');
+                    },
+                  ),
+                ],
+              ),
+            ),
+            // Footer
+            Container(
+              padding: const EdgeInsets.all(16),
+              child: const Text(
+                'مواعيدك v1.0.0',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDrawerItem(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      leading: Icon(icon, color: AppColors.brown),
+      title: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+          color: AppColors.ink,
+        ),
+      ),
+      trailing: const Icon(
+        Icons.chevron_left,
+        color: AppColors.textSecondary,
+        size: 20,
+      ),
+      onTap: onTap,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
     );
   }
 }

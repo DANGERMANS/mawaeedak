@@ -168,7 +168,7 @@ class TabConfig {
   static const List<Map<String, String>> tabs = [
     {'name': 'home', 'label': 'الرئيسية', 'icon': 'home'},
     {'name': 'salary', 'label': 'الرواتب', 'icon': 'attach_money'},
-    {'name': 'services', 'label': 'الخدمات', 'icon': 'grid_view'},
+    {'name': 'services', 'label': 'خدماتك', 'icon': 'grid_view'},
     {'name': 'calendar', 'label': 'التقويم', 'icon': 'calendar_today'},
     {'name': 'more', 'label': 'المزيد', 'icon': 'more_horiz'},
   ];

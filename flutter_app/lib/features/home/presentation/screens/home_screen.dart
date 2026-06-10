@@ -25,7 +25,7 @@ class HomeScreen extends ConsumerWidget {
             children: [
               const SizedBox(height: 40),
               // Header
-              _buildHeader(),
+              _buildHeader(context),
               const SizedBox(height: 20),
               // Daily Message
               _buildDailyMessageCard(dailyMessage),
@@ -53,7 +53,7 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     final now = DateTime.now();
     final greeting = now.hour < 12 ? 'صباح الخير' : 'مساء الخير';
     final dayName = AppConstants.arabicDays[now.weekday % 7];
@@ -67,13 +67,31 @@ class HomeScreen extends ConsumerWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              greeting,
-              style: const TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.w800,
-                color: AppColors.ink,
-              ),
+            Row(
+              children: [
+                // Menu Button
+                GestureDetector(
+                  onTap: () => Scaffold.of(context).openDrawer(),
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: AppColors.cream,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.menu, color: AppColors.ink),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  greeting,
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.ink,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 4),
             Text(
@@ -92,16 +110,34 @@ class HomeScreen extends ConsumerWidget {
             ),
           ],
         ),
-        Container(
-          width: 56,
-          height: 56,
-          decoration: BoxDecoration(
-            color: AppColors.cream,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: const Center(
-            child: Text('🕌', style: TextStyle(fontSize: 32)),
-          ),
+        Row(
+          children: [
+            // Notifications Button
+            GestureDetector(
+              onTap: () => context.pushNamed('notifications'),
+              child: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.cream,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.notifications_outlined, color: AppColors.ink),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: AppColors.cream,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Center(
+                child: Text('🕌', style: TextStyle(fontSize: 32)),
+              ),
+            ),
+          ],
         ),
       ],
     );
