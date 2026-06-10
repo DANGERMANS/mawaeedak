@@ -1,119 +1,153 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_theme.dart';
 
-/// صفحة الخصوصية
-class PrivacyScreen extends StatelessWidget {
+/// Privacy Screen - Luxury Saudi Design
+class PrivacyScreen extends ConsumerWidget {
   const PrivacyScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('سياسة الخصوصية'),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'سياسة الخصوصية',
-              style: Theme.of(context).textTheme.displayMedium,
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            _PrivacySection(
-              title: 'المعلومات التي نجمعها',
-              icon: Icons.info_outline,
-              content: '''نجمع المعلومات التالية:
-• معلومات الحساب (الاسم، البريد الإلكتروني)
-• معلومات المواعيد والأحداث
-• معلومات مالية (الرواتب والمصروفات)
-• تفضيلات المستخدم''',
-            ),
-            _PrivacySection(
-              title: 'كيفية استخدام المعلومات',
-              icon: Icons.usage,
-              content: '''نستخدم معلوماتك لـ:
-• تقديم خدماتنا وتحسينها
-• إشعارات المواعيد والتذكيرات
-• تحسين تجربة المستخدم
-• الأمان ومنع الاحتيال''',
-            ),
-            _PrivacySection(
-              title: 'حماية المعلومات',
-              icon: Icons.security,
-              content: '''نحن نستخدم إجراءات أمان متقدمة لحماية معلوماتك، بما في ذلك:
-• تشفير البيانات
-• جدران الحماية
-• التحكم في الوصول''',
-            ),
-            _PrivacySection(
-              title: 'مشاركة المعلومات',
-              icon: Icons.share,
-              content: '''لا نشارك معلوماتك الشخصية مع أطراف ثالثة إلا في الحالات التالية:
-• بموافقتك الصريحة
-• للامتثال للقانون
-• لحماية حقوقنا''',
-            ),
-            _PrivacySection(
-              title: 'حقوقك',
-              icon: Icons.person,
-              content: '''لديك الحق في:
-• الوصول لبياناتك
-• تصحيح البيانات
-• حذف البيانات
-• الاعتراض على المعالجة''',
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            Text(
-              'آخر تحديث: 2026-06-10',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ],
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: AppColors.backgroundGradient,
+        ),
+        child: SafeArea(
+          bottom: false,
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: _buildHeader(context),
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: _buildContent(),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
-}
 
-class _PrivacySection extends StatelessWidget {
-  final String title;
-  final IconData icon;
-  final String content;
+  Widget _buildHeader(BuildContext context) {
+    return Row(
+      children: [
+        GestureDetector(
+          onTap: () => Navigator.pop(context),
+          child: Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: AppColors.card,
+              borderRadius: BorderRadius.circular(AppRadius.lg),
+              border: Border.all(color: AppColors.border, width: 1),
+              boxShadow: AppShadows.card,
+            ),
+            child: const Icon(Icons.arrow_forward_rounded, color: AppColors.ink),
+          ),
+        ),
+        const SizedBox(width: AppSpacing.md),
+        Text(
+          'سياسة الخصوصية',
+          style: GoogleFonts.cairo(
+            fontSize: 24,
+            fontWeight: FontWeight.w800,
+            color: AppColors.ink,
+          ),
+        ),
+      ],
+    );
+  }
 
-  const _PrivacySection({
-    required this.title,
-    required this.icon,
-    required this.content,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: AppSpacing.md),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+  Widget _buildContent() {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(AppRadius.xxl),
+        border: Border.all(color: AppColors.border, width: 1),
+        boxShadow: AppShadows.card,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: AppColors.gold.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(AppRadius.lg),
+            ),
+            child: Row(
               children: [
-                Icon(icon, color: AppColors.gold),
-                const SizedBox(width: AppSpacing.sm),
+                const Icon(Icons.lock_rounded, color: AppColors.gold, size: 32),
+                const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Text(
-                    title,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: AppColors.gold,
+                    'حماية بياناتك أولويتنا',
+                    style: GoogleFonts.cairo(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.ink,
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(content, style: Theme.of(context).textTheme.bodyMedium),
-          ],
-        ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          _buildSection('جمع البيانات', 'نجمع فقط البيانات الضرورية لتقديم خدماتنا.'),
+          _buildSection('استخدام البيانات', 'نستخدم بياناتك لتحسين تجربتك.'),
+          _buildSection('حماية البيانات', 'نتخذ إجراءات أمان صارمة لحماية بياناتك.'),
+          _buildSection('حقوقك', 'لديك الحق في الوصول وتعديل وحذف بياناتك.'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSection(String title, String content) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: AppColors.gold,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: GoogleFonts.cairo(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.ink,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            content,
+            style: GoogleFonts.cairo(
+              fontSize: 14,
+              color: AppColors.muted,
+              height: 1.6,
+            ),
+          ),
+        ],
       ),
     );
   }

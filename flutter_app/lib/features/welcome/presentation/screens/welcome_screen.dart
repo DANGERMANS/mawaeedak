@@ -1,206 +1,199 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_theme.dart';
 
-/// صفحة الترحيب
-class WelcomeScreen extends StatefulWidget {
+/// Welcome Screen - Luxury Saudi Design
+class WelcomeScreen extends ConsumerWidget {
   const WelcomeScreen({super.key});
 
   @override
-  State<WelcomeScreen> createState() => _WelcomeScreenState();
-}
-
-class _WelcomeScreenState extends State<WelcomeScreen> {
-  final PageController _pageController = PageController();
-  int _currentPage = 0;
-
-  final List<_OnboardingItem> _pages = [
-    _OnboardingItem(
-      title: 'مواعيدك',
-      description: 'كل مواعيدك في مكان واحد\nسهل الوصول والمنظمة',
-      icon: Icons.calendar_month,
-      color: AppColors.gold,
-    ),
-    _OnboardingItem(
-      title: 'إدارة مالية',
-      description: 'تتبع رواتبك ومصاريفك\nوخطط لميزانيتك',
-      icon: Icons.account_balance_wallet,
-      color: const Color(0xFF4A90A4),
-    ),
-    _OnboardingItem(
-      title: 'مواقيت الصلاة',
-      description: 'اعرف أوقات الصلاة\nمع عداد تنازلي',
-      icon: Icons.mosque,
-      color: const Color(0xFF7B68EE),
-    ),
-    _OnboardingItem(
-      title: 'مراكز الخدمات',
-      description: '8 مراكز خدمات حكومية\nفي تطبيق واحد',
-      icon: Icons.business,
-      color: const Color(0xFF2ECC71),
-    ),
-  ];
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Skip Button
-            Align(
-              alignment: Alignment.centerLeft,
-              child: TextButton(
-                onPressed: () => context.go('/auth'),
-                child: const Text('تخطي'),
-              ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: AppColors.backgroundGradient,
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: Column(
+              children: [
+                const Spacer(),
+                _buildLogo(),
+                const SizedBox(height: AppSpacing.xl),
+                _buildTitle(),
+                const SizedBox(height: AppSpacing.md),
+                _buildSubtitle(),
+                const Spacer(),
+                _buildFeatures(),
+                const SizedBox(height: AppSpacing.xl),
+                _buildButtons(context),
+                const SizedBox(height: AppSpacing.lg),
+              ],
             ),
-
-            // Pages
-            Expanded(
-              child: PageView.builder(
-                controller: _pageController,
-                onPageChanged: (index) {
-                  setState(() => _currentPage = index);
-                },
-                itemCount: _pages.length,
-                itemBuilder: (context, index) {
-                  final page = _pages[index];
-                  return _OnboardingPage(item: page);
-                },
-              ),
-            ),
-
-            // Indicators
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                _pages.length,
-                (index) => Container(
-                  width: _currentPage == index ? 24 : 8,
-                  height: 8,
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  decoration: BoxDecoration(
-                    color: _currentPage == index
-                        ? AppColors.gold
-                        : AppColors.gold.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xl),
-
-            // Buttons
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              child: Row(
-                children: [
-                  if (_currentPage > 0)
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {
-                          _pageController.previousPage(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                          );
-                        },
-                        child: const Text('السابق'),
-                      ),
-                    )
-                  else
-                    const Expanded(child: SizedBox()),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (_currentPage < _pages.length - 1) {
-                          _pageController.nextPage(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                          );
-                        } else {
-                          context.go('/auth');
-                        }
-                      },
-                      child: Text(
-                        _currentPage < _pages.length - 1 ? 'التالي' : 'ابدأ الآن',
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
-}
 
-class _OnboardingItem {
-  final String title;
-  final String description;
-  final IconData icon;
-  final Color color;
-
-  const _OnboardingItem({
-    required this.title,
-    required this.description,
-    required this.icon,
-    required this.color,
-  });
-}
-
-class _OnboardingPage extends StatelessWidget {
-  final _OnboardingItem item;
-
-  const _OnboardingPage({required this.item});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(AppSpacing.xl),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 150,
-            height: 150,
-            decoration: BoxDecoration(
-              color: item.color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(AppRadius.xl),
-            ),
-            child: Icon(
-              item.icon,
-              size: 80,
-              color: item.color,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xl * 2),
-          Text(
-            item.title,
-            style: Theme.of(context).textTheme.displayMedium?.copyWith(
-              color: item.color,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            item.description,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              height: 1.8,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
+  Widget _buildLogo() {
+    return Container(
+      width: 120,
+      height: 120,
+      decoration: BoxDecoration(
+        gradient: AppColors.goldGradient,
+        borderRadius: BorderRadius.circular(AppRadius.xxl),
+        boxShadow: AppShadows.glass,
       ),
+      child: const Icon(
+        Icons.calendar_month_rounded,
+        color: Colors.white,
+        size: 60,
+      ),
+    );
+  }
+
+  Widget _buildTitle() {
+    return Column(
+      children: [
+        Text(
+          'مواعيدك',
+          style: GoogleFonts.cairo(
+            fontSize: 36,
+            fontWeight: FontWeight.w800,
+            color: AppColors.ink,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          height: 4,
+          width: 60,
+          decoration: BoxDecoration(
+            gradient: AppColors.goldGradient,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSubtitle() {
+    return Text(
+      'كل مواعيدك في مكان واحد',
+      style: GoogleFonts.cairo(
+        fontSize: 18,
+        color: AppColors.muted,
+        height: 1.5,
+      ),
+      textAlign: TextAlign.center,
+    );
+  }
+
+  Widget _buildFeatures() {
+    final features = [
+      {'icon': Icons.schedule_rounded, 'title': 'المواعيد'},
+      {'icon': Icons.account_balance_wallet_rounded, 'title': 'الرواتب'},
+      {'icon': Icons.mosque_rounded, 'title': 'الصلوات'},
+      {'icon': Icons.business_rounded, 'title': 'الخدمات'},
+    ];
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: features.map((feature) {
+        return Column(
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: AppColors.gold.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(AppRadius.lg),
+              ),
+              child: Icon(
+                feature['icon'] as IconData,
+                color: AppColors.gold,
+                size: 28,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              feature['title'] as String,
+              style: GoogleFonts.cairo(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColors.ink,
+              ),
+            ),
+          ],
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildButtons(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            gradient: AppColors.goldGradient,
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            boxShadow: AppShadows.card,
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => context.goNamed('auth'),
+              borderRadius: BorderRadius.circular(AppRadius.lg),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Center(
+                  child: Text(
+                    'ابدأ الآن',
+                    style: GoogleFonts.cairo(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            border: Border.all(color: AppColors.border, width: 1),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {},
+              borderRadius: BorderRadius.circular(AppRadius.lg),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Center(
+                  child: Text(
+                    'تصفح كضيف',
+                    style: GoogleFonts.cairo(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.gold,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
