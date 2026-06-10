@@ -15,7 +15,7 @@ final prayerTimesProvider = StateNotifierProvider<PrayerTimesNotifier, PrayerTim
 
 class PrayerTimesNotifier extends StateNotifier<PrayerTimes> {
   final Ref _ref;
-  
+
   PrayerTimesNotifier(this._ref) : super(PrayerTimes.mock) {
     _loadPrayerTimes();
   }
@@ -29,7 +29,6 @@ class PrayerTimesNotifier extends StateNotifier<PrayerTimes> {
       );
       state = times;
     } catch (e) {
-      // Fallback to mock data if API fails
       state = PrayerTimes.mock;
     }
   }
@@ -39,67 +38,126 @@ class PrayerTimesNotifier extends StateNotifier<PrayerTimes> {
   }
 }
 
-/// Financial Events Provider - Real API with local fallback
+class ScheduleApiSetting {
+  final bool enabled;
+  final bool showOnHome;
+
+  const ScheduleApiSetting({required this.enabled, required this.showOnHome});
+}
+
+class ScheduleItemDefinition {
+  final String id;
+  final String name;
+  final int paymentDay;
+  final String type;
+  final ScheduleApiSetting setting;
+
+  const ScheduleItemDefinition({
+    required this.id,
+    required this.name,
+    required this.paymentDay,
+    required this.type,
+    required this.setting,
+  });
+}
+
+class ScheduleService {
+  static const Map<String, ScheduleApiSetting> apiSettings = {
+    'salary': ScheduleApiSetting(enabled: true, showOnHome: true),
+    'citizenAccount': ScheduleApiSetting(enabled: true, showOnHome: true),
+    'socialSecurity': ScheduleApiSetting(enabled: true, showOnHome: true),
+    'hafiz': ScheduleApiSetting(enabled: true, showOnHome: true),
+    'reef': ScheduleApiSetting(enabled: false, showOnHome: false),
+    'sakani': ScheduleApiSetting(enabled: false, showOnHome: false),
+    'tamheer': ScheduleApiSetting(enabled: false, showOnHome: false),
+    'productive': ScheduleApiSetting(enabled: false, showOnHome: false),
+  };
+
+  static const List<ScheduleItemDefinition> definitions = [
+    ScheduleItemDefinition(id: 'salary', name: 'الراتب', paymentDay: 27, type: 'salary', setting: ScheduleApiSetting(enabled: true, showOnHome: true)),
+    ScheduleItemDefinition(id: 'citizenAccount', name: 'حساب المواطن', paymentDay: 10, type: 'support', setting: ScheduleApiSetting(enabled: true, showOnHome: true)),
+    ScheduleItemDefinition(id: 'socialSecurity', name: 'الضمان الاجتماعي', paymentDay: 1, type: 'social', setting: ScheduleApiSetting(enabled: true, showOnHome: true)),
+    ScheduleItemDefinition(id: 'hafiz', name: 'حافز', paymentDay: 5, type: 'support', setting: ScheduleApiSetting(enabled: true, showOnHome: true)),
+    ScheduleItemDefinition(id: 'reef', name: 'دعم ريف', paymentDay: 1, type: 'support', setting: ScheduleApiSetting(enabled: false, showOnHome: false)),
+    ScheduleItemDefinition(id: 'sakani', name: 'الدعم السكني', paymentDay: 24, type: 'housing', setting: ScheduleApiSetting(enabled: false, showOnHome: false)),
+    ScheduleItemDefinition(id: 'tamheer', name: 'تمهير', paymentDay: 1, type: 'support', setting: ScheduleApiSetting(enabled: false, showOnHome: false)),
+    ScheduleItemDefinition(id: 'productive', name: 'دعم الأسر المنتجة', paymentDay: 1, type: 'support', setting: ScheduleApiSetting(enabled: false, showOnHome: false)),
+  ];
+
+  List<FinancialEvent> activeItems() {
+    final today = DateTime.now();
+    final items = definitions
+        .where((definition) => definition.setting.enabled)
+        .map((definition) => _buildEvent(definition, today))
+        .toList();
+    items.sort((a, b) => a.daysRemaining.compareTo(b.daysRemaining));
+    return items;
+  }
+
+  List<FinancialEvent> homeItems() {
+    final allowed = definitions
+        .where((definition) => definition.setting.enabled && definition.setting.showOnHome)
+        .map((definition) => definition.id)
+        .toSet();
+    return activeItems().where((event) => allowed.contains(event.id)).toList();
+  }
+
+  FinancialEvent? nearestItem() {
+    final items = activeItems();
+    if (items.isEmpty) return null;
+    return items.first;
+  }
+
+  FinancialEvent _buildEvent(ScheduleItemDefinition definition, DateTime today) {
+    var target = DateTime(today.year, today.month, definition.paymentDay);
+    final todayOnly = DateTime(today.year, today.month, today.day);
+    if (target.isBefore(todayOnly)) {
+      target = DateTime(today.year, today.month + 1, definition.paymentDay);
+    }
+    final remaining = target.difference(todayOnly).inDays;
+    return FinancialEvent(
+      id: definition.id,
+      name: definition.name,
+      nameAr: definition.name,
+      date: target.toIso8601String().split('T').first,
+      type: definition.type,
+      daysRemaining: remaining,
+    );
+  }
+}
+
+final scheduleServiceProvider = Provider<ScheduleService>((ref) {
+  return ScheduleService();
+});
+
+/// Financial Events Provider - unified salary/support schedule
 final financialEventsProvider = StateNotifierProvider<FinancialEventsNotifier, List<FinancialEvent>>((ref) {
   return FinancialEventsNotifier(ref);
 });
 
+final financialHomeEventsProvider = Provider<List<FinancialEvent>>((ref) {
+  return ref.watch(scheduleServiceProvider).homeItems();
+});
+
+final nearestFinancialEventProvider = Provider<FinancialEvent?>((ref) {
+  return ref.watch(scheduleServiceProvider).nearestItem();
+});
+
 class FinancialEventsNotifier extends StateNotifier<List<FinancialEvent>> {
   final Ref _ref;
-  
-  FinancialEventsNotifier(this._ref) : super(_mockFinancialEvents) {
+
+  FinancialEventsNotifier(this._ref) : super(const []) {
     _loadFinancialEvents();
   }
 
   Future<void> _loadFinancialEvents() async {
-    try {
-      final api = _ref.read(apiServiceProvider);
-      final events = await api.getFinancialEvents();
-      state = events;
-    } catch (e) {
-      // Keep mock data if API fails
-    }
+    state = _ref.read(scheduleServiceProvider).activeItems();
   }
 
-  void addEvent(FinancialEvent event) {
-    state = [...state, event];
-    // Try to persist to API (fire and forget)
-    _ref.read(apiServiceProvider).createFinancialEvent(event);
-  }
-
-  void removeEvent(String id) {
-    state = state.where((e) => e.id != id).toList();
-    // Try to delete from API (fire and forget)
-    _ref.read(apiServiceProvider).deleteFinancialEvent(id);
+  void refresh() {
+    state = _ref.read(scheduleServiceProvider).activeItems();
   }
 }
-
-final _mockFinancialEvents = [
-  const FinancialEvent(
-    id: '1',
-    name: 'راتب شهر ذو الحجة',
-    date: '2026-06-25',
-    amount: '12,000',
-    type: 'salary',
-    daysRemaining: 16,
-  ),
-  const FinancialEvent(
-    id: '2',
-    name: 'حساب المواطن',
-    date: '2026-06-10',
-    amount: '2,000',
-    type: 'support',
-    daysRemaining: 1,
-  ),
-  const FinancialEvent(
-    id: '3',
-    name: 'فاتورة كهرباء',
-    date: '2026-06-12',
-    amount: '350',
-    type: 'bill',
-    daysRemaining: 3,
-  ),
-];
 
 /// Appointments Provider - Real API with local fallback
 final appointmentsProvider = StateNotifierProvider<AppointmentsNotifier, List<Appointment>>((ref) {
@@ -108,7 +166,7 @@ final appointmentsProvider = StateNotifierProvider<AppointmentsNotifier, List<Ap
 
 class AppointmentsNotifier extends StateNotifier<List<Appointment>> {
   final Ref _ref;
-  
+
   AppointmentsNotifier(this._ref) : super(_mockAppointments) {
     _loadAppointments();
   }
@@ -118,20 +176,16 @@ class AppointmentsNotifier extends StateNotifier<List<Appointment>> {
       final api = _ref.read(apiServiceProvider);
       final appointments = await api.getAppointments();
       state = appointments;
-    } catch (e) {
-      // Keep mock data if API fails
-    }
+    } catch (e) {}
   }
 
   void addAppointment(Appointment appointment) {
     state = [...state, appointment];
-    // Try to persist to API (fire and forget)
     _ref.read(apiServiceProvider).createAppointment(appointment);
   }
 
   void removeAppointment(String id) {
     state = state.where((a) => a.id != id).toList();
-    // Try to delete from API (fire and forget)
     _ref.read(apiServiceProvider).deleteAppointment(id);
   }
 
@@ -173,13 +227,12 @@ final serviceCentersProvider = StateNotifierProvider<ServiceCentersNotifier, Lis
 
 class ServiceCentersNotifier extends StateNotifier<List<ServiceCenter>> {
   final Ref _ref;
-  
+
   ServiceCentersNotifier(this._ref) : super([]) {
     _loadServiceCenters();
   }
 
   Future<void> _loadServiceCenters() async {
-    // Load from constants as fallback
     final localCenters = AppConstants.serviceCenters.map((center) {
       return ServiceCenter(
         id: center['id'] as int,
@@ -188,19 +241,16 @@ class ServiceCentersNotifier extends StateNotifier<List<ServiceCenter>> {
         services: List<String>.from(center['services'] as List),
       );
     }).toList();
-    
+
     state = localCenters;
-    
-    // Try to fetch from API
+
     try {
       final api = _ref.read(apiServiceProvider);
       final centers = await api.getServiceCenters();
       if (centers.isNotEmpty) {
         state = centers;
       }
-    } catch (e) {
-      // Keep local data if API fails
-    }
+    } catch (e) {}
   }
 }
 
@@ -211,7 +261,7 @@ final userProvider = StateNotifierProvider<UserNotifier, User>((ref) {
 
 class UserNotifier extends StateNotifier<User> {
   final Ref _ref;
-  
+
   UserNotifier(this._ref) : super(User.empty) {
     _loadUser();
   }
@@ -221,14 +271,11 @@ class UserNotifier extends StateNotifier<User> {
       final api = _ref.read(apiServiceProvider);
       final user = await api.getUserProfile();
       state = user;
-    } catch (e) {
-      // Keep empty user if API fails
-    }
+    } catch (e) {}
   }
 
   void updateUser(User user) {
     state = user;
-    // Try to persist to API (fire and forget)
     _ref.read(apiServiceProvider).updateUserProfile(user);
   }
 
