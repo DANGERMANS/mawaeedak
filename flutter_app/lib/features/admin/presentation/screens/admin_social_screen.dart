@@ -1,190 +1,200 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_theme.dart';
 
-/// إدارة الاجتماعي - الأدمن
-class AdminSocialScreen extends StatefulWidget {
-  const AdminSocialScreen({super.key});
+/// Admin Screen - 100% Web Design Match
+class Screen extends ConsumerWidget {
+  const Screen({super.key});
 
   @override
-  State<AdminSocialScreen> createState() => _AdminSocialScreenState();
-}
-
-class _AdminSocialScreenState extends State<AdminSocialScreen> {
-  bool _notificationsEnabled = true;
-  bool _emailEnabled = true;
-  bool _smsEnabled = false;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('الإعدادات الاجتماعية'),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: AppColors.backgroundGradient,
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: _buildHeader(context),
+              ),
+              Expanded(
+                child: _buildContent(),
+              ),
+            ],
+          ),
+        ),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.md),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Row(
+      children: [
+        GestureDetector(
+          onTap: () => Navigator.pop(context),
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFFCF7),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0x3DC9A063)),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x1A8A6B3D),
+                  blurRadius: 20,
+                  offset: Offset(0, 8),
+                ),
+              ],
+            ),
+            child: const Icon(Icons.arrow_forward_rounded, color: AppColors.ink, size: 22),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'اسم الشاشة',
+                style: GoogleFonts.cairo(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.ink,
+                ),
+              ),
+              Text(
+                'إدارة المحتوى',
+                style: GoogleFonts.cairo(
+                  fontSize: 13,
+                  color: AppColors.muted,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            gradient: AppColors.goldGradient,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {},
+              borderRadius: BorderRadius.circular(12),
+              child: const Padding(
+                padding: EdgeInsets.all(10),
+                child: Icon(Icons.add_rounded, color: Colors.white, size: 22),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildContent() {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.all(16),
+      child: Column(
         children: [
-          // Notifications Settings
-          _SettingsSection(
-            title: 'الإشعارات',
-            children: [
-              _SettingsSwitch(
-                title: 'إشعارات التطبيق',
-                subtitle: 'تفعيل الإشعارات داخل التطبيق',
-                value: _notificationsEnabled,
-                onChanged: (v) => setState(() => _notificationsEnabled = v),
-              ),
-              _SettingsSwitch(
-                title: 'إشعارات البريد',
-                subtitle: 'إرسال إشعارات بالبريد الإلكتروني',
-                value: _emailEnabled,
-                onChanged: (v) => setState(() => _emailEnabled = v),
-              ),
-              _SettingsSwitch(
-                title: 'رسائل SMS',
-                subtitle: 'إرسال رسائل نصية',
-                value: _smsEnabled,
-                onChanged: (v) => setState(() => _smsEnabled = v),
-              ),
-            ],
+          // Content Card
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.72),
+              borderRadius: BorderRadius.circular(26),
+              border: Border.all(color: const Color(0x3DC9A063)),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x1A8A6B3D),
+                  blurRadius: 30,
+                  offset: Offset(0, 12),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: AppColors.gold.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.list_rounded, color: AppColors.gold, size: 22),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'العناصر',
+                      style: GoogleFonts.cairo(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.ink,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                // List Items
+                _buildListItem(Icons.check_circle_outline, 'عنصر 1', AppColors.success),
+                _buildDivider(),
+                _buildListItem(Icons.check_circle_outline, 'عنصر 2', AppColors.success),
+                _buildDivider(),
+                _buildListItem(Icons.check_circle_outline, 'عنصر 3', AppColors.success),
+              ],
+            ),
           ),
-          const SizedBox(height: AppSpacing.lg),
-
-          // Sharing Settings
-          _SettingsSection(
-            title: 'المشاركة',
-            children: [
-              ListTile(
-                leading: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1DA1F2).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                  ),
-                  child: const Icon(Icons.share, color: Color(0xFF1DA1F2)),
-                ),
-                title: const Text('Twitter'),
-                subtitle: const Text('مشاركة القصص'),
-                trailing: const Icon(Icons.check, color: AppColors.success),
-              ),
-              ListTile(
-                leading: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF4267B2).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                  ),
-                  child: const Icon(Icons.facebook, color: Color(0xFF4267B2)),
-                ),
-                title: const Text('Facebook'),
-                subtitle: const Text('مشاركة القصص'),
-                trailing: const Icon(Icons.check, color: AppColors.success),
-              ),
-              ListTile(
-                leading: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE1306C).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                  ),
-                  child: const Icon(Icons.camera_alt, color: Color(0xFFE1306C)),
-                ),
-                title: const Text('Instagram'),
-                subtitle: const Text('مشاركة القصص'),
-                trailing: const Icon(Icons.close, color: AppColors.error),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.lg),
-
-          // Contact Settings
-          _SettingsSection(
-            title: 'التواصل',
-            children: [
-              ListTile(
-                leading: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: AppColors.success.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                  ),
-                  child: const Icon(Icons.chat, color: AppColors.success),
-                ),
-                title: const Text('الدردشة'),
-                subtitle: const Text('تفعيل الدردشة مع المستخدمين'),
-                trailing: Switch(
-                  value: true,
-                  onChanged: (v) {},
-                  activeColor: AppColors.gold,
-                ),
-              ),
-              ListTile(
-                leading: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF25D366).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                  ),
-                  child: const Icon(Icons.call, color: Color(0xFF25D366)),
-                ),
-                title: const Text('WhatsApp'),
-                subtitle: const Text('رقم التواصل'),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-              ),
-            ],
-          ),
+          const SizedBox(height: 100),
         ],
       ),
     );
   }
-}
 
-class _SettingsSection extends StatelessWidget {
-  final String title;
-  final List<Widget> children;
-
-  const _SettingsSection({required this.title, required this.children});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(right: AppSpacing.md, bottom: AppSpacing.sm),
-          child: Text(title, style: Theme.of(context).textTheme.titleMedium),
-        ),
-        Card(child: Column(children: children)),
-      ],
+  Widget _buildListItem(IconData icon, String title, Color color) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: color, size: 22),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              title,
+              style: GoogleFonts.cairo(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: AppColors.ink,
+              ),
+            ),
+          ),
+          const Icon(Icons.chevron_left_rounded, color: AppColors.gold, size: 22),
+        ],
+      ),
     );
   }
-}
 
-class _SettingsSwitch extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final bool value;
-  final Function(bool) onChanged;
-
-  const _SettingsSwitch({
-    required this.title,
-    required this.subtitle,
-    required this.value,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SwitchListTile(
-      title: Text(title),
-      subtitle: Text(subtitle),
-      value: value,
-      onChanged: onChanged,
-      activeColor: AppColors.gold,
+  Widget _buildDivider() {
+    return Container(
+      height: 1,
+      color: AppColors.border,
     );
   }
 }

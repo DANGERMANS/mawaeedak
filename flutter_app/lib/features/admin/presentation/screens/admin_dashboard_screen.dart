@@ -1,276 +1,54 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_theme.dart';
 
-/// لوحة تحكم الأدمن
-class AdminDashboardScreen extends StatelessWidget {
+/// Admin Dashboard - 100% Web Design Match
+class AdminDashboardScreen extends ConsumerWidget {
   const AdminDashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('لوحة التحكم'),
-        automaticallyImplyLeading: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () {},
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Stats Cards
-            _StatsSection(),
-            const SizedBox(height: AppSpacing.lg),
-
-            // Quick Actions
-            Text(
-              'إجراءات سريعة',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            _QuickActionsGrid(),
-
-            const SizedBox(height: AppSpacing.lg),
-
-            // Recent Activity
-            Text(
-              'النشاط الأخير',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            _RecentActivityList(),
-          ],
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: AppColors.backgroundGradient,
         ),
-      ),
-    );
-  }
-}
-
-class _StatsSection extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final stats = [
-      _StatItem(
-        title: 'الأعضاء',
-        value: '1,234',
-        icon: Icons.people,
-        color: const Color(0xFF4A90A4),
-        change: '+12%',
-      ),
-      _StatItem(
-        title: 'الأحداث',
-        value: '456',
-        icon: Icons.event,
-        color: AppColors.gold,
-        change: '+5%',
-      ),
-      _StatItem(
-        title: 'الإشعارات',
-        value: '89',
-        icon: Icons.notifications,
-        color: const Color(0xFF7B68EE),
-        change: '-3%',
-      ),
-      _StatItem(
-        title: 'الشكاوى',
-        value: '23',
-        icon: Icons.report_problem,
-        color: AppColors.error,
-        change: '-15%',
-      ),
-    ];
-
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: AppSpacing.md,
-      crossAxisSpacing: AppSpacing.md,
-      childAspectRatio: 1.3,
-      children: stats.map((stat) => _StatCard(stat: stat)).toList(),
-    );
-  }
-}
-
-class _StatItem {
-  final String title;
-  final String value;
-  final IconData icon;
-  final Color color;
-  final String change;
-
-  const _StatItem({
-    required this.title,
-    required this.value,
-    required this.icon,
-    required this.color,
-    required this.change,
-  });
-}
-
-class _StatCard extends StatelessWidget {
-  final _StatItem stat;
-
-  const _StatCard({required this.stat});
-
-  @override
-  Widget build(BuildContext context) {
-    final isPositive = stat.change.startsWith('+');
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: stat.color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                  ),
-                  child: Icon(stat.icon, color: stat.color, size: 20),
+        child: SafeArea(
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              // Header
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: _buildHeader(),
                 ),
-                Text(
-                  stat.change,
-                  style: TextStyle(
-                    color: isPositive ? AppColors.success : AppColors.error,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  stat.value,
-                  style: Theme.of(context).textTheme.headlineMedium,
-                ),
-                Text(
-                  stat.title,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _QuickActionsGrid extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final actions = [
-      _ActionItem(
-        title: 'إدارة الأعضاء',
-        icon: Icons.people_outline,
-        color: const Color(0xFF4A90A4),
-        onTap: () {},
-      ),
-      _ActionItem(
-        title: 'إدارة الأحداث',
-        icon: Icons.event_outlined,
-        color: AppColors.gold,
-        onTap: () {},
-      ),
-      _ActionItem(
-        title: 'الشكاوى',
-        icon: Icons.report_problem_outlined,
-        color: AppColors.error,
-        onTap: () {},
-      ),
-      _ActionItem(
-        title: 'التقارير',
-        icon: Icons.analytics_outlined,
-        color: const Color(0xFF7B68EE),
-        onTap: () {},
-      ),
-      _ActionItem(
-        title: 'الإشعارات',
-        icon: Icons.notifications_outlined,
-        color: const Color(0xFF2ECC71),
-        onTap: () {},
-      ),
-      _ActionItem(
-        title: 'الإعدادات',
-        icon: Icons.settings_outlined,
-        color: AppColors.brown,
-        onTap: () {},
-      ),
-    ];
-
-    return GridView.count(
-      crossAxisCount: 3,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: AppSpacing.md,
-      crossAxisSpacing: AppSpacing.md,
-      childAspectRatio: 1,
-      children: actions.map((action) => _ActionCard(action: action)).toList(),
-    );
-  }
-}
-
-class _ActionItem {
-  final String title;
-  final IconData icon;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _ActionItem({
-    required this.title,
-    required this.icon,
-    required this.color,
-    required this.onTap,
-  });
-}
-
-class _ActionCard extends StatelessWidget {
-  final _ActionItem action;
-
-  const _ActionCard({required this.action});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: InkWell(
-        onTap: action.onTap,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.sm),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: action.color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                ),
-                child: Icon(action.icon, color: action.color),
               ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                action.title,
-                style: Theme.of(context).textTheme.bodyMedium,
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              // Stats Cards
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: _buildStatsGrid(),
+                ),
+              ),
+              // Quick Actions
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: _buildQuickActions(),
+                ),
+              ),
+              // Recent Activity
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: _buildRecentActivity(),
+                ),
+              ),
+              // Bottom Padding
+              const SliverToBoxAdapter(
+                child: SizedBox(height: 100),
               ),
             ],
           ),
@@ -278,86 +56,298 @@ class _ActionCard extends StatelessWidget {
       ),
     );
   }
-}
 
-class _RecentActivityList extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final activities = [
-      _ActivityItem(
-        title: 'تم تسجيل عضو جديد',
-        time: 'منذ 5 دقائق',
-        icon: Icons.person_add,
-        color: AppColors.success,
+  Widget _buildHeader() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                gradient: AppColors.goldGradient,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: const Icon(
+                Icons.admin_panel_settings_rounded,
+                color: Colors.white,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'لوحة التحكم',
+                    style: GoogleFonts.cairo(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.ink,
+                    ),
+                  ),
+                  Text(
+                    'إدارة التطبيق والمحتوى',
+                    style: GoogleFonts.cairo(
+                      fontSize: 13,
+                      color: AppColors.muted,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatsGrid() {
+    final stats = [
+      {'icon': Icons.people_rounded, 'title': 'الأعضاء', 'value': '1,234', 'color': AppColors.gold},
+      {'icon': Icons.calendar_today_rounded, 'title': 'المواعيد', 'value': '567', 'color': AppColors.success},
+      {'icon': Icons.message_rounded, 'title': 'الرسائل', 'value': '89', 'color': AppColors.info},
+      {'icon': Icons.notifications_rounded, 'title': 'الإشعارات', 'value': '234', 'color': AppColors.warning},
+    ];
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 1.4,
       ),
-      _ActivityItem(
-        title: 'تم إضافة حدث جديد',
-        time: 'منذ ساعة',
-        icon: Icons.add_circle,
-        color: AppColors.gold,
-      ),
-      _ActivityItem(
-        title: 'تم حل شكوى',
-        time: 'منذ ساعتين',
-        icon: Icons.check_circle,
-        color: const Color(0xFF4A90A4),
-      ),
-      _ActivityItem(
-        title: 'تم إرسال إشعار',
-        time: 'منذ 3 ساعات',
-        icon: Icons.notifications,
-        color: const Color(0xFF7B68EE),
-      ),
+      itemCount: stats.length,
+      itemBuilder: (context, index) {
+        final stat = stats[index];
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFFCF7),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: const Color(0x3DC9A063), width: 1),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x1A8A6B3D),
+                blurRadius: 30,
+                offset: Offset(0, 12),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: (stat['color'] as Color).withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  stat['icon'] as IconData,
+                  color: stat['color'] as Color,
+                  size: 20,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                stat['value'] as String,
+                style: GoogleFonts.cairo(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.ink,
+                ),
+              ),
+              Text(
+                stat['title'] as String,
+                style: GoogleFonts.cairo(
+                  fontSize: 13,
+                  color: AppColors.muted,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildQuickActions() {
+    final actions = [
+      {'icon': Icons.add_circle_rounded, 'title': 'إضافة موعد', 'color': AppColors.gold},
+      {'icon': Icons.send_rounded, 'title': 'إرسال إشعار', 'color': AppColors.success},
+      {'icon': Icons.edit_rounded, 'title': 'تعديل محتوى', 'color': AppColors.info},
+      {'icon': Icons.settings_rounded, 'title': 'الإعدادات', 'color': AppColors.goldDark},
     ];
 
     return Column(
-      children: activities
-          .map((activity) => _ActivityCard(activity: activity))
-          .toList(),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.flash_on_rounded, color: AppColors.gold, size: 22),
+            const SizedBox(width: 8),
+            Text(
+              'إجراءات سريعة',
+              style: GoogleFonts.cairo(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: AppColors.ink,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 4,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+          ),
+          itemCount: actions.length,
+          itemBuilder: (context, index) {
+            final action = actions[index];
+            return GestureDetector(
+              onTap: () {},
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFFCF7),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0x3DC9A063), width: 1),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: (action['color'] as Color).withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        action['icon'] as IconData,
+                        color: action['color'] as Color,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      action['title'] as String,
+                      style: GoogleFonts.cairo(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.ink,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
-}
 
-class _ActivityItem {
-  final String title;
-  final String time;
-  final IconData icon;
-  final Color color;
+  Widget _buildRecentActivity() {
+    final activities = [
+      {'icon': Icons.person_add_rounded, 'title': 'عضو جديد', 'time': 'منذ 5 دقائق', 'color': AppColors.success},
+      {'icon': Icons.event_rounded, 'title': 'تم إضافة موعد', 'time': 'منذ 15 دقيقة', 'color': AppColors.gold},
+      {'icon': Icons.notifications_active_rounded, 'title': 'إشعار مرسل', 'time': 'منذ ساعة', 'color': AppColors.info},
+    ];
 
-  const _ActivityItem({
-    required this.title,
-    required this.time,
-    required this.icon,
-    required this.color,
-  });
-}
-
-class _ActivityCard extends StatelessWidget {
-  final _ActivityItem activity;
-
-  const _ActivityCard({required this.activity});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: ListTile(
-        leading: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: activity.color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(AppRadius.sm),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: const Color(0x3DC9A063), width: 1),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x1A8A6B3D),
+            blurRadius: 30,
+            offset: Offset(0, 12),
           ),
-          child: Icon(activity.icon, color: activity.color, size: 20),
-        ),
-        title: Text(activity.title),
-        subtitle: Text(activity.time),
-        trailing: Icon(
-          Icons.arrow_forward_ios,
-          size: 16,
-          color: AppColors.brown,
-        ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.history_rounded, color: AppColors.gold, size: 22),
+              const SizedBox(width: 8),
+              Text(
+                'النشاط الأخير',
+                style: GoogleFonts.cairo(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.ink,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ...activities.map((activity) => _buildActivityItem(
+                icon: activity['icon'] as IconData,
+                title: activity['title'] as String,
+                time: activity['time'] as String,
+                color: activity['color'] as Color,
+              )),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActivityItem({
+    required IconData icon,
+    required String title,
+    required String time,
+    required Color color,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              title,
+              style: GoogleFonts.cairo(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppColors.ink,
+              ),
+            ),
+          ),
+          Text(
+            time,
+            style: GoogleFonts.cairo(
+              fontSize: 12,
+              color: AppColors.muted,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -1,204 +1,200 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_theme.dart';
 
-/// إدارة الرسائل - الأدمن
-class AdminMessagesScreen extends StatefulWidget {
-  const AdminMessagesScreen({super.key});
+/// Admin Screen - 100% Web Design Match
+class Screen extends ConsumerWidget {
+  const Screen({super.key});
 
   @override
-  State<AdminMessagesScreen> createState() => _AdminMessagesScreenState();
-}
-
-class _AdminMessagesScreenState extends State<AdminMessagesScreen> {
-  final List<_MessageItem> _messages = [
-    _MessageItem(
-      id: '1',
-      sender: 'أحمد محمد',
-      subject: 'استفسار عن الخدمة',
-      body: 'أود الاستفسار عن خدمة السفر...',
-      date: '2026-06-10 09:00',
-      isRead: false,
-    ),
-    _MessageItem(
-      id: '2',
-      sender: 'فاطمة علي',
-      subject: 'شكر وتقدير',
-      body: 'شكراً على الخدمة الممتازة',
-      date: '2026-06-09 14:30',
-      isRead: true,
-    ),
-    _MessageItem(
-      id: '3',
-      sender: 'محمد خالد',
-      subject: 'اقتراح',
-      body: 'أقترح إضافة ميزة جديدة',
-      date: '2026-06-08 11:00',
-      isRead: true,
-    ),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('الرسائل'),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _sendBroadcast,
-        backgroundColor: AppColors.gold,
-        child: const Icon(Icons.send),
-      ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        itemCount: _messages.length,
-        itemBuilder: (context, index) {
-          final message = _messages[index];
-          return _MessageCard(
-            message: message,
-            onTap: () => _viewMessage(message),
-          );
-        },
-      ),
-    );
-  }
-
-  void _sendBroadcast() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('إرسال رسالة جماعية')),
-    );
-  }
-
-  void _viewMessage(_MessageItem message) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => _MessageDetailSheet(message: message),
-    );
-  }
-}
-
-class _MessageItem {
-  final String id;
-  final String sender;
-  final String subject;
-  final String body;
-  final String date;
-  final bool isRead;
-
-  const _MessageItem({
-    required this.id,
-    required this.sender,
-    required this.subject,
-    required this.body,
-    required this.date,
-    required this.isRead,
-  });
-}
-
-class _MessageCard extends StatelessWidget {
-  final _MessageItem message;
-  final VoidCallback onTap;
-
-  const _MessageCard({required this.message, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      color: message.isRead ? null : AppColors.lightGold,
-      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: AppColors.gold.withOpacity(0.1),
-          child: Text(
-            message.sender[0],
-            style: const TextStyle(color: AppColors.gold),
-          ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: AppColors.backgroundGradient,
         ),
-        title: Text(
-          message.subject,
-          style: TextStyle(
-            fontWeight: message.isRead ? FontWeight.normal : FontWeight.bold,
-          ),
-        ),
-        subtitle: Text('${message.sender} - ${message.date}'),
-        trailing: message.isRead
-            ? null
-            : Container(
-                width: 8,
-                height: 8,
-                decoration: const BoxDecoration(
-                  color: AppColors.gold,
-                  shape: BoxShape.circle,
-                ),
-              ),
-        onTap: onTap,
-      ),
-    );
-  }
-}
-
-class _MessageDetailSheet extends StatelessWidget {
-  final _MessageItem message;
-
-  const _MessageDetailSheet({required this.message});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+        child: SafeArea(
+          child: Column(
             children: [
-              CircleAvatar(
-                backgroundColor: AppColors.gold.withOpacity(0.1),
-                child: Text(
-                  message.sender[0],
-                  style: const TextStyle(color: AppColors.gold),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: _buildHeader(context),
+              ),
+              Expanded(
+                child: _buildContent(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Row(
+      children: [
+        GestureDetector(
+          onTap: () => Navigator.pop(context),
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFFCF7),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0x3DC9A063)),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x1A8A6B3D),
+                  blurRadius: 20,
+                  offset: Offset(0, 8),
+                ),
+              ],
+            ),
+            child: const Icon(Icons.arrow_forward_rounded, color: AppColors.ink, size: 22),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'اسم الشاشة',
+                style: GoogleFonts.cairo(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.ink,
                 ),
               ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              Text(
+                'إدارة المحتوى',
+                style: GoogleFonts.cairo(
+                  fontSize: 13,
+                  color: AppColors.muted,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            gradient: AppColors.goldGradient,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {},
+              borderRadius: BorderRadius.circular(12),
+              child: const Padding(
+                padding: EdgeInsets.all(10),
+                child: Icon(Icons.add_rounded, color: Colors.white, size: 22),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildContent() {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          // Content Card
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.72),
+              borderRadius: BorderRadius.circular(26),
+              border: Border.all(color: const Color(0x3DC9A063)),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x1A8A6B3D),
+                  blurRadius: 30,
+                  offset: Offset(0, 12),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    Text(message.sender,
-                        style: Theme.of(context).textTheme.titleMedium),
-                    Text(message.date,
-                        style: Theme.of(context).textTheme.bodyMedium),
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: AppColors.gold.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.list_rounded, color: AppColors.gold, size: 22),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'العناصر',
+                      style: GoogleFonts.cairo(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.ink,
+                      ),
+                    ),
                   ],
                 ),
-              ),
-            ],
+                const SizedBox(height: 16),
+                // List Items
+                _buildListItem(Icons.check_circle_outline, 'عنصر 1', AppColors.success),
+                _buildDivider(),
+                _buildListItem(Icons.check_circle_outline, 'عنصر 2', AppColors.success),
+                _buildDivider(),
+                _buildListItem(Icons.check_circle_outline, 'عنصر 3', AppColors.success),
+              ],
+            ),
           ),
-          const SizedBox(height: AppSpacing.lg),
-          Text(message.subject,
-              style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: AppSpacing.md),
-          Text(message.body, style: Theme.of(context).textTheme.bodyLarge),
-          const SizedBox(height: AppSpacing.lg),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close),
-                  label: const Text('إغلاق'),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.reply),
-                  label: const Text('رد'),
-                ),
-              ),
-            ],
-          ),
+          const SizedBox(height: 100),
         ],
       ),
+    );
+  }
+
+  Widget _buildListItem(IconData icon, String title, Color color) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: color, size: 22),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              title,
+              style: GoogleFonts.cairo(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: AppColors.ink,
+              ),
+            ),
+          ),
+          const Icon(Icons.chevron_left_rounded, color: AppColors.gold, size: 22),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return Container(
+      height: 1,
+      color: AppColors.border,
     );
   }
 }

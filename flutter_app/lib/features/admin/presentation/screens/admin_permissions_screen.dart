@@ -1,191 +1,200 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_theme.dart';
 
-/// إدارة الصلاحيات - الأدمن
-class AdminPermissionsScreen extends StatefulWidget {
-  const AdminPermissionsScreen({super.key});
+/// Admin Screen - 100% Web Design Match
+class Screen extends ConsumerWidget {
+  const Screen({super.key});
 
   @override
-  State<AdminPermissionsScreen> createState() => _AdminPermissionsScreenState();
-}
-
-class _AdminPermissionsScreenState extends State<AdminPermissionsScreen> {
-  final List<_PermissionItem> _permissions = [
-    _PermissionItem(
-      id: '1',
-      name: 'المدير العام',
-      permissions: ['all'],
-      description: 'صلاحيات كاملة',
-      color: AppColors.error,
-    ),
-    _PermissionItem(
-      id: '2',
-      name: 'المشرف',
-      permissions: ['users', 'events', 'notifications'],
-      description: 'إدارة المستخدمين والأحداث',
-      color: const Color(0xFF7B68EE),
-    ),
-    _PermissionItem(
-      id: '3',
-      name: 'المحرر',
-      permissions: ['content', 'news'],
-      description: 'إدارة المحتوى والأخبار',
-      color: AppColors.gold,
-    ),
-    _PermissionItem(
-      id: '4',
-      name: 'المستخدم',
-      permissions: ['view'],
-      description: 'عرض فقط',
-      color: AppColors.brown,
-    ),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('إدارة الصلاحيات'),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _addPermission,
-        backgroundColor: AppColors.gold,
-        child: const Icon(Icons.add),
-      ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        itemCount: _permissions.length,
-        itemBuilder: (context, index) {
-          final permission = _permissions[index];
-          return _PermissionCard(
-            permission: permission,
-            onEdit: () => _editPermission(permission),
-            onDelete: () => _deletePermission(permission.id),
-          );
-        },
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: AppColors.backgroundGradient,
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: _buildHeader(context),
+              ),
+              Expanded(
+                child: _buildContent(),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  void _addPermission() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('إضافة صلاحية جديدة')),
-    );
-  }
-
-  void _editPermission(_PermissionItem permission) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('تعديل ${permission.name}')),
-    );
-  }
-
-  void _deletePermission(String id) {
-    setState(() => _permissions.removeWhere((p) => p.id == id));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('تم حذف الصلاحية')),
-    );
-  }
-}
-
-class _PermissionItem {
-  final String id;
-  final String name;
-  final List<String> permissions;
-  final String description;
-  final Color color;
-
-  const _PermissionItem({
-    required this.id,
-    required this.name,
-    required this.permissions,
-    required this.description,
-    required this.color,
-  });
-}
-
-class _PermissionCard extends StatelessWidget {
-  final _PermissionItem permission;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
-  const _PermissionCard({
-    required this.permission,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: AppSpacing.md),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: permission.color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                  ),
-                  child: Icon(Icons.security, color: permission.color),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(permission.name,
-                          style: Theme.of(context).textTheme.titleMedium),
-                      Text(permission.description,
-                          style: Theme.of(context).textTheme.bodyMedium),
-                    ],
-                  ),
-                ),
-                PopupMenuButton<String>(
-                  onSelected: (value) {
-                    if (value == 'edit') onEdit();
-                    if (value == 'delete') onDelete();
-                  },
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(value: 'edit', child: Text('تعديل')),
-                    const PopupMenuItem(
-                      value: 'delete',
-                      child:
-                          Text('حذف', style: TextStyle(color: AppColors.error)),
-                    ),
-                  ],
+  Widget _buildHeader(BuildContext context) {
+    return Row(
+      children: [
+        GestureDetector(
+          onTap: () => Navigator.pop(context),
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFFCF7),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0x3DC9A063)),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x1A8A6B3D),
+                  blurRadius: 20,
+                  offset: Offset(0, 8),
                 ),
               ],
             ),
-            const SizedBox(height: AppSpacing.md),
-            Wrap(
-              spacing: AppSpacing.sm,
-              runSpacing: AppSpacing.sm,
-              children: permission.permissions.map((p) {
-                return Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.sm,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: permission.color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                  ),
-                  child: Text(
-                    p,
-                    style: TextStyle(color: permission.color, fontSize: 12),
-                  ),
-                );
-              }).toList(),
-            ),
-          ],
+            child: const Icon(Icons.arrow_forward_rounded, color: AppColors.ink, size: 22),
+          ),
         ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'اسم الشاشة',
+                style: GoogleFonts.cairo(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.ink,
+                ),
+              ),
+              Text(
+                'إدارة المحتوى',
+                style: GoogleFonts.cairo(
+                  fontSize: 13,
+                  color: AppColors.muted,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            gradient: AppColors.goldGradient,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {},
+              borderRadius: BorderRadius.circular(12),
+              child: const Padding(
+                padding: EdgeInsets.all(10),
+                child: Icon(Icons.add_rounded, color: Colors.white, size: 22),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildContent() {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          // Content Card
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.72),
+              borderRadius: BorderRadius.circular(26),
+              border: Border.all(color: const Color(0x3DC9A063)),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x1A8A6B3D),
+                  blurRadius: 30,
+                  offset: Offset(0, 12),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: AppColors.gold.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.list_rounded, color: AppColors.gold, size: 22),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'العناصر',
+                      style: GoogleFonts.cairo(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.ink,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                // List Items
+                _buildListItem(Icons.check_circle_outline, 'عنصر 1', AppColors.success),
+                _buildDivider(),
+                _buildListItem(Icons.check_circle_outline, 'عنصر 2', AppColors.success),
+                _buildDivider(),
+                _buildListItem(Icons.check_circle_outline, 'عنصر 3', AppColors.success),
+              ],
+            ),
+          ),
+          const SizedBox(height: 100),
+        ],
       ),
+    );
+  }
+
+  Widget _buildListItem(IconData icon, String title, Color color) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: color, size: 22),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              title,
+              style: GoogleFonts.cairo(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: AppColors.ink,
+              ),
+            ),
+          ),
+          const Icon(Icons.chevron_left_rounded, color: AppColors.gold, size: 22),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return Container(
+      height: 1,
+      color: AppColors.border,
     );
   }
 }

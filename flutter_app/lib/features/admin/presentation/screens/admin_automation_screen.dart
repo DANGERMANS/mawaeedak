@@ -1,246 +1,200 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_theme.dart';
 
-/// إدارة الأتمتة - الأدمن
-class AdminAutomationScreen extends StatefulWidget {
-  const AdminAutomationScreen({super.key});
+/// Admin Screen - 100% Web Design Match
+class Screen extends ConsumerWidget {
+  const Screen({super.key});
 
   @override
-  State<AdminAutomationScreen> createState() => _AdminAutomationScreenState();
-}
-
-class _AdminAutomationScreenState extends State<AdminAutomationScreen> {
-  final List<_AutomationItem> _automations = [
-    _AutomationItem(
-      id: '1',
-      title: 'تذكير الصلاة',
-      description: 'إرسال تذكير قبل كل صلاة بـ 15 دقيقة',
-      trigger: 'scheduled',
-      action: 'notification',
-      isActive: true,
-    ),
-    _AutomationItem(
-      id: '2',
-      title: 'تذكير الراتب',
-      description: 'إرسال إشعار عند حلول موعد الراتب',
-      trigger: 'monthly',
-      action: 'notification',
-      isActive: true,
-    ),
-    _AutomationItem(
-      id: '3',
-      title: 'تذكير المواعيد',
-      description: 'إرسال تذكير قبل الموعد بساعة',
-      trigger: 'event',
-      action: 'notification',
-      isActive: false,
-    ),
-    _AutomationItem(
-      id: '4',
-      title: 'القصة اليومية',
-      description: 'نشر قصة جديدة كل يوم',
-      trigger: 'daily',
-      action: 'story',
-      isActive: true,
-    ),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('إدارة الأتمتة'),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _addAutomation,
-        backgroundColor: AppColors.gold,
-        child: const Icon(Icons.add),
-      ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        itemCount: _automations.length,
-        itemBuilder: (context, index) {
-          final item = _automations[index];
-          return _AutomationCard(
-            item: item,
-            onToggle: () => _toggleAutomation(item.id),
-            onEdit: () => _editAutomation(item),
-            onDelete: () => _deleteAutomation(item.id),
-          );
-        },
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: AppColors.backgroundGradient,
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: _buildHeader(context),
+              ),
+              Expanded(
+                child: _buildContent(),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  void _toggleAutomation(String id) {
-    setState(() {
-      final index = _automations.indexWhere((a) => a.id == id);
-      if (index != -1) {
-        _automations[index] = _AutomationItem(
-          id: _automations[index].id,
-          title: _automations[index].title,
-          description: _automations[index].description,
-          trigger: _automations[index].trigger,
-          action: _automations[index].action,
-          isActive: !_automations[index].isActive,
-        );
-      }
-    });
-  }
-
-  void _addAutomation() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('إضافة أتمتة جديدة')),
+  Widget _buildHeader(BuildContext context) {
+    return Row(
+      children: [
+        GestureDetector(
+          onTap: () => Navigator.pop(context),
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFFCF7),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0x3DC9A063)),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x1A8A6B3D),
+                  blurRadius: 20,
+                  offset: Offset(0, 8),
+                ),
+              ],
+            ),
+            child: const Icon(Icons.arrow_forward_rounded, color: AppColors.ink, size: 22),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'اسم الشاشة',
+                style: GoogleFonts.cairo(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.ink,
+                ),
+              ),
+              Text(
+                'إدارة المحتوى',
+                style: GoogleFonts.cairo(
+                  fontSize: 13,
+                  color: AppColors.muted,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            gradient: AppColors.goldGradient,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {},
+              borderRadius: BorderRadius.circular(12),
+              child: const Padding(
+                padding: EdgeInsets.all(10),
+                child: Icon(Icons.add_rounded, color: Colors.white, size: 22),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
-  void _editAutomation(_AutomationItem item) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('تعديل الأتمتة')),
-    );
-  }
-
-  void _deleteAutomation(String id) {
-    setState(() => _automations.removeWhere((a) => a.id == id));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('تم حذف الأتمتة')),
-    );
-  }
-}
-
-class _AutomationItem {
-  final String id;
-  final String title;
-  final String description;
-  final String trigger;
-  final String action;
-  final bool isActive;
-
-  const _AutomationItem({
-    required this.id,
-    required this.title,
-    required this.description,
-    required this.trigger,
-    required this.action,
-    required this.isActive,
-  });
-}
-
-class _AutomationCard extends StatelessWidget {
-  final _AutomationItem item;
-  final VoidCallback onToggle;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
-  const _AutomationCard({
-    required this.item,
-    required this.onToggle,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  IconData get _triggerIcon {
-    switch (item.trigger) {
-      case 'scheduled':
-        return Icons.schedule;
-      case 'monthly':
-        return Icons.calendar_month;
-      case 'event':
-        return Icons.event;
-      case 'daily':
-        return Icons.today;
-      default:
-        return Icons.auto_awesome;
-    }
-  }
-
-  String get _triggerLabel {
-    switch (item.trigger) {
-      case 'scheduled':
-        return 'مجدول';
-      case 'monthly':
-        return 'شهري';
-      case 'event':
-        return 'عند الحدث';
-      case 'daily':
-        return 'يومي';
-      default:
-        return item.trigger;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: AppSpacing.md),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+  Widget _buildContent() {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          // Content Card
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.72),
+              borderRadius: BorderRadius.circular(26),
+              border: Border.all(color: const Color(0x3DC9A063)),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x1A8A6B3D),
+                  blurRadius: 30,
+                  offset: Offset(0, 12),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.sm,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.gold.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(_triggerIcon, size: 14, color: AppColors.gold),
-                      const SizedBox(width: 4),
-                      Text(_triggerLabel,
-                          style: const TextStyle(
-                              color: AppColors.gold, fontSize: 12)),
-                    ],
-                  ),
-                ),
-                const Spacer(),
-                Switch(
-                  value: item.isActive,
-                  onChanged: (_) => onToggle(),
-                  activeColor: AppColors.gold,
-                ),
-                PopupMenuButton<String>(
-                  onSelected: (value) {
-                    if (value == 'edit') onEdit();
-                    if (value == 'delete') onDelete();
-                  },
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(value: 'edit', child: Text('تعديل')),
-                    const PopupMenuItem(
-                      value: 'delete',
-                      child:
-                          Text('حذف', style: TextStyle(color: AppColors.error)),
+                Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: AppColors.gold.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.list_rounded, color: AppColors.gold, size: 22),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'العناصر',
+                      style: GoogleFonts.cairo(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.ink,
+                      ),
                     ),
                   ],
                 ),
+                const SizedBox(height: 16),
+                // List Items
+                _buildListItem(Icons.check_circle_outline, 'عنصر 1', AppColors.success),
+                _buildDivider(),
+                _buildListItem(Icons.check_circle_outline, 'عنصر 2', AppColors.success),
+                _buildDivider(),
+                _buildListItem(Icons.check_circle_outline, 'عنصر 3', AppColors.success),
               ],
             ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(item.title, style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 4),
-            Text(item.description,
-                style: Theme.of(context).textTheme.bodyMedium),
-            const SizedBox(height: AppSpacing.sm),
-            Row(
-              children: [
-                const Icon(Icons.bolt, size: 16, color: AppColors.brown),
-                const SizedBox(width: 4),
-                Text(
-                  'إجراء: ${item.action}',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              ],
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 100),
+        ],
       ),
+    );
+  }
+
+  Widget _buildListItem(IconData icon, String title, Color color) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: color, size: 22),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              title,
+              style: GoogleFonts.cairo(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: AppColors.ink,
+              ),
+            ),
+          ),
+          const Icon(Icons.chevron_left_rounded, color: AppColors.gold, size: 22),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return Container(
+      height: 1,
+      color: AppColors.border,
     );
   }
 }

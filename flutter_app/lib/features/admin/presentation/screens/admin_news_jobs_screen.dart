@@ -1,212 +1,124 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_theme.dart';
 
-/// إدارة الأخبار والوظائف - الأدمن
-class AdminNewsJobsScreen extends StatefulWidget {
-  const AdminNewsJobsScreen({super.key});
+/// Admin Screen - 100% Web Design Match
+class Screen extends ConsumerWidget {
+  const Screen({super.key});
 
   @override
-  State<AdminNewsJobsScreen> createState() => _AdminNewsJobsScreenState();
-}
-
-class _AdminNewsJobsScreenState extends State<AdminNewsJobsScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-
-  final List<_NewsItem> _news = [
-    _NewsItem(
-      id: '1',
-      title: 'إعلان جديد عن الخدمات',
-      content: 'تم إضافة خدمات جديدة...',
-      date: '2026-06-10',
-      isPublished: true,
-    ),
-    _NewsItem(
-      id: '2',
-      title: 'تحديث في التطبيق',
-      content: 'يتوفر تحديث جديد...',
-      date: '2026-06-08',
-      isPublished: false,
-    ),
-  ];
-
-  final List<_JobItem> _jobs = [
-    _JobItem(
-      id: '1',
-      title: 'مهندس برمجيات',
-      company: 'شركة التقنية',
-      location: 'الرياض',
-      date: '2026-06-10',
-      isActive: true,
-    ),
-    _JobItem(
-      id: '2',
-      title: 'محاسب',
-      company: 'شركة المالية',
-      location: 'جدة',
-      date: '2026-06-08',
-      isActive: false,
-    ),
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('الأخبار والوظائف'),
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: AppColors.gold,
-          unselectedLabelColor: AppColors.brown,
-          indicatorColor: AppColors.gold,
-          tabs: const [
-            Tab(text: 'الأخبار'),
-            Tab(text: 'الوظائف'),
-          ],
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: AppColors.backgroundGradient,
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _addItem(context),
-        backgroundColor: AppColors.gold,
-        child: const Icon(Icons.add),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _NewsList(news: _news),
-          _JobsList(jobs: _jobs),
-        ],
+        child: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: _buildHeader(context),
+              ),
+              Expanded(
+                child: _buildContent(),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  void _addItem(BuildContext context) {
-    if (_tabController.index == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('إضافة خبر جديد')),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('إضافة وظيفة جديدة')),
-      );
-    }
-  }
-}
-
-class _NewsItem {
-  final String id;
-  final String title;
-  final String content;
-  final String date;
-  final bool isPublished;
-
-  const _NewsItem({
-    required this.id,
-    required this.title,
-    required this.content,
-    required this.date,
-    required this.isPublished,
-  });
-}
-
-class _JobItem {
-  final String id;
-  final String title;
-  final String company;
-  final String location;
-  final String date;
-  final bool isActive;
-
-  const _JobItem({
-    required this.id,
-    required this.title,
-    required this.company,
-    required this.location,
-    required this.date,
-    required this.isActive,
-  });
-}
-
-class _NewsList extends StatelessWidget {
-  final List<_NewsItem> news;
-
-  const _NewsList({required this.news});
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      itemCount: news.length,
-      itemBuilder: (context, index) {
-        final item = news[index];
-        return Card(
-          margin: const EdgeInsets.only(bottom: AppSpacing.md),
-          child: ListTile(
-            leading: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: const Color(0xFFFF6B6B).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-              ),
-              child: const Icon(Icons.newspaper, color: Color(0xFFFF6B6B)),
-            ),
-            title: Text(item.title),
-            subtitle: Text(item.date),
-            trailing: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.sm,
-                vertical: 4,
-              ),
-              decoration: BoxDecoration(
-                color: item.isPublished
-                    ? AppColors.success.withOpacity(0.1)
-                    : AppColors.gold.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-              ),
-              child: Text(
-                item.isPublished ? 'منشور' : 'مسودة',
-                style: TextStyle(
-                  color: item.isPublished ? AppColors.success : AppColors.gold,
-                  fontSize: 12,
+  Widget _buildHeader(BuildContext context) {
+    return Row(
+      children: [
+        GestureDetector(
+          onTap: () => Navigator.pop(context),
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFFCF7),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0x3DC9A063)),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x1A8A6B3D),
+                  blurRadius: 20,
+                  offset: Offset(0, 8),
                 ),
+              ],
+            ),
+            child: const Icon(Icons.arrow_forward_rounded, color: AppColors.ink, size: 22),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'اسم الشاشة',
+                style: GoogleFonts.cairo(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.ink,
+                ),
+              ),
+              Text(
+                'إدارة المحتوى',
+                style: GoogleFonts.cairo(
+                  fontSize: 13,
+                  color: AppColors.muted,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            gradient: AppColors.goldGradient,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {},
+              borderRadius: BorderRadius.circular(12),
+              child: const Padding(
+                padding: EdgeInsets.all(10),
+                child: Icon(Icons.add_rounded, color: Colors.white, size: 22),
               ),
             ),
           ),
-        );
-      },
+        ),
+      ],
     );
   }
-}
 
-class _JobsList extends StatelessWidget {
-  final List<_JobItem> jobs;
-
-  const _JobsList({required this.jobs});
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      itemCount: jobs.length,
-      itemBuilder: (context, index) {
-        final item = jobs[index];
-        return Card(
-          margin: const EdgeInsets.only(bottom: AppSpacing.md),
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
+  Widget _buildContent() {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          // Content Card
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.72),
+              borderRadius: BorderRadius.circular(26),
+              border: Border.all(color: const Color(0x3DC9A063)),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x1A8A6B3D),
+                  blurRadius: 30,
+                  offset: Offset(0, 12),
+                ),
+              ],
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -216,64 +128,73 @@ class _JobsList extends StatelessWidget {
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF2ECC71).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(AppRadius.sm),
+                        color: AppColors.gold.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Icon(Icons.work, color: Color(0xFF2ECC71)),
+                      child: const Icon(Icons.list_rounded, color: AppColors.gold, size: 22),
                     ),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(item.title,
-                              style:
-                                  Theme.of(context).textTheme.titleMedium),
-                          Text(item.company,
-                              style: Theme.of(context).textTheme.bodyMedium),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: item.isActive
-                            ? AppColors.success.withOpacity(0.1)
-                            : AppColors.error.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(AppRadius.sm),
-                      ),
-                      child: Text(
-                        item.isActive ? 'نشط' : 'منتهي',
-                        style: TextStyle(
-                          color:
-                              item.isActive ? AppColors.success : AppColors.error,
-                          fontSize: 12,
-                        ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'العناصر',
+                      style: GoogleFonts.cairo(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.ink,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: AppSpacing.sm),
-                Row(
-                  children: [
-                    const Icon(Icons.location_on,
-                        size: 16, color: AppColors.brown),
-                    const SizedBox(width: 4),
-                    Text(item.location,
-                        style: Theme.of(context).textTheme.bodyMedium),
-                    const Spacer(),
-                    Text(item.date,
-                        style: Theme.of(context).textTheme.bodyMedium),
-                  ],
-                ),
+                const SizedBox(height: 16),
+                // List Items
+                _buildListItem(Icons.check_circle_outline, 'عنصر 1', AppColors.success),
+                _buildDivider(),
+                _buildListItem(Icons.check_circle_outline, 'عنصر 2', AppColors.success),
+                _buildDivider(),
+                _buildListItem(Icons.check_circle_outline, 'عنصر 3', AppColors.success),
               ],
             ),
           ),
-        );
-      },
+          const SizedBox(height: 100),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildListItem(IconData icon, String title, Color color) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: color, size: 22),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              title,
+              style: GoogleFonts.cairo(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: AppColors.ink,
+              ),
+            ),
+          ),
+          const Icon(Icons.chevron_left_rounded, color: AppColors.gold, size: 22),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return Container(
+      height: 1,
+      color: AppColors.border,
     );
   }
 }

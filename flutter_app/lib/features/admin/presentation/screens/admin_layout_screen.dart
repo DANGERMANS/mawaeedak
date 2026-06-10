@@ -1,307 +1,200 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_theme.dart';
 
-/// تخطيط الأدمن الرئيسي
-class AdminLayoutScreen extends StatelessWidget {
-  const AdminLayoutScreen({super.key});
+/// Admin Screen - 100% Web Design Match
+class Screen extends ConsumerWidget {
+  const Screen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('لوحة الأدمن'),
-        automaticallyImplyLeading: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () => context.push('/admin/notifications'),
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: () => context.push('/admin/settings'),
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Quick Stats
-            Row(
-              children: [
-                Expanded(
-                  child: _QuickStatCard(
-                    title: 'الأعضاء',
-                    value: '1,234',
-                    icon: Icons.people,
-                    color: const Color(0xFF4A90A4),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: _QuickStatCard(
-                    title: 'الأحداث',
-                    value: '456',
-                    icon: Icons.event,
-                    color: AppColors.gold,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Row(
-              children: [
-                Expanded(
-                  child: _QuickStatCard(
-                    title: 'الشكاوى',
-                    value: '23',
-                    icon: Icons.report_problem,
-                    color: AppColors.error,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: _QuickStatCard(
-                    title: 'وقت التشغيل',
-                    value: '99.9%',
-                    icon: Icons.verified,
-                    color: AppColors.success,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.xl),
-
-            // Navigation Grid
-            Text(
-              'إدارة المحتوى',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            GridView.count(
-              crossAxisCount: 3,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: AppSpacing.md,
-              crossAxisSpacing: AppSpacing.md,
-              childAspectRatio: 1,
-              children: [
-                _NavCard(
-                  title: 'الأعضاء',
-                  icon: Icons.people_outline,
-                  color: const Color(0xFF4A90A4),
-                  onTap: () => context.push('/admin/members'),
-                ),
-                _NavCard(
-                  title: 'الأحداث',
-                  icon: Icons.event_outlined,
-                  color: AppColors.gold,
-                  onTap: () => context.push('/admin/events'),
-                ),
-                _NavCard(
-                  title: 'المالية',
-                  icon: Icons.attach_money,
-                  color: AppColors.success,
-                  onTap: () => context.push('/admin/finance'),
-                ),
-                _NavCard(
-                  title: 'الشكاوى',
-                  icon: Icons.report_problem_outlined,
-                  color: AppColors.error,
-                  onTap: () => context.push('/admin/complaints'),
-                ),
-                _NavCard(
-                  title: 'الأخبار',
-                  icon: Icons.newspaper,
-                  color: const Color(0xFFFF6B6B),
-                  onTap: () => context.push('/admin/news'),
-                ),
-                _NavCard(
-                  title: 'الوظائف',
-                  icon: Icons.work_outline,
-                  color: const Color(0xFF2ECC71),
-                  onTap: () => context.push('/admin/jobs'),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: AppSpacing.xl),
-
-            // System Management
-            Text(
-              'إدارة النظام',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            GridView.count(
-              crossAxisCount: 3,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: AppSpacing.md,
-              crossAxisSpacing: AppSpacing.md,
-              childAspectRatio: 1,
-              children: [
-                _NavCard(
-                  title: 'الأتمتة',
-                  icon: Icons.auto_awesome,
-                  color: const Color(0xFF7B68EE),
-                  onTap: () => context.push('/admin/automation'),
-                ),
-                _NavCard(
-                  title: 'الإشعارات',
-                  icon: Icons.notifications_outlined,
-                  color: const Color(0xFFFFB347),
-                  onTap: () => context.push('/admin/notifications'),
-                ),
-                _NavCard(
-                  title: 'القصص',
-                  icon: Icons.auto_stories,
-                  color: const Color(0xFF4A90A4),
-                  onTap: () => context.push('/admin/story'),
-                ),
-                _NavCard(
-                  title: 'الصلاحيات',
-                  icon: Icons.security,
-                  color: AppColors.brown,
-                  onTap: () => context.push('/admin/permissions'),
-                ),
-                _NavCard(
-                  title: 'المظاهر',
-                  icon: Icons.palette,
-                  color: const Color(0xFFFF69B4),
-                  onTap: () => context.push('/admin/themes'),
-                ),
-                _NavCard(
-                  title: 'الدعم',
-                  icon: Icons.support_agent,
-                  color: const Color(0xFF20B2AA),
-                  onTap: () => context.push('/admin/support'),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: AppSpacing.xl),
-
-            // Tools
-            Text(
-              'الأدوات',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            GridView.count(
-              crossAxisCount: 3,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: AppSpacing.md,
-              crossAxisSpacing: AppSpacing.md,
-              childAspectRatio: 1,
-              children: [
-                _NavCard(
-                  title: 'التقارير',
-                  icon: Icons.analytics,
-                  color: const Color(0xFF7B68EE),
-                  onTap: () => context.push('/admin/reports'),
-                ),
-                _NavCard(
-                  title: 'البيانات',
-                  icon: Icons.storage,
-                  color: AppColors.gold,
-                  onTap: () => context.push('/admin/data'),
-                ),
-                _NavCard(
-                  title: 'الدليل',
-                  icon: Icons.help_outline,
-                  color: const Color(0xFF4A90A4),
-                  onTap: () => context.push('/admin/guide'),
-                ),
-              ],
-            ),
-          ],
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: AppColors.backgroundGradient,
         ),
-      ),
-    );
-  }
-}
-
-class _QuickStatCard extends StatelessWidget {
-  final String title;
-  final String value;
-  final IconData icon;
-  final Color color;
-
-  const _QuickStatCard({
-    required this.title,
-    required this.value,
-    required this.icon,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          children: [
-            Icon(icon, color: color, size: 28),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              value,
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            Text(title, style: Theme.of(context).textTheme.bodyMedium),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _NavCard extends StatelessWidget {
-  final String title;
-  final IconData icon;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _NavCard({
-    required this.title,
-    required this.icon,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.sm),
+        child: SafeArea(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                ),
-                child: Icon(icon, color: color),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: _buildHeader(context),
               ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                title,
-                style: Theme.of(context).textTheme.bodyMedium,
-                textAlign: TextAlign.center,
+              Expanded(
+                child: _buildContent(),
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Row(
+      children: [
+        GestureDetector(
+          onTap: () => Navigator.pop(context),
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFFCF7),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0x3DC9A063)),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x1A8A6B3D),
+                  blurRadius: 20,
+                  offset: Offset(0, 8),
+                ),
+              ],
+            ),
+            child: const Icon(Icons.arrow_forward_rounded, color: AppColors.ink, size: 22),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'اسم الشاشة',
+                style: GoogleFonts.cairo(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.ink,
+                ),
+              ),
+              Text(
+                'إدارة المحتوى',
+                style: GoogleFonts.cairo(
+                  fontSize: 13,
+                  color: AppColors.muted,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            gradient: AppColors.goldGradient,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {},
+              borderRadius: BorderRadius.circular(12),
+              child: const Padding(
+                padding: EdgeInsets.all(10),
+                child: Icon(Icons.add_rounded, color: Colors.white, size: 22),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildContent() {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          // Content Card
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.72),
+              borderRadius: BorderRadius.circular(26),
+              border: Border.all(color: const Color(0x3DC9A063)),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x1A8A6B3D),
+                  blurRadius: 30,
+                  offset: Offset(0, 12),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: AppColors.gold.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.list_rounded, color: AppColors.gold, size: 22),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'العناصر',
+                      style: GoogleFonts.cairo(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.ink,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                // List Items
+                _buildListItem(Icons.check_circle_outline, 'عنصر 1', AppColors.success),
+                _buildDivider(),
+                _buildListItem(Icons.check_circle_outline, 'عنصر 2', AppColors.success),
+                _buildDivider(),
+                _buildListItem(Icons.check_circle_outline, 'عنصر 3', AppColors.success),
+              ],
+            ),
+          ),
+          const SizedBox(height: 100),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildListItem(IconData icon, String title, Color color) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: color, size: 22),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              title,
+              style: GoogleFonts.cairo(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: AppColors.ink,
+              ),
+            ),
+          ),
+          const Icon(Icons.chevron_left_rounded, color: AppColors.gold, size: 22),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return Container(
+      height: 1,
+      color: AppColors.border,
     );
   }
 }

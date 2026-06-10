@@ -1,256 +1,200 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_theme.dart';
 
-/// إدارة الإشعارات - الأدمن
-class AdminNotificationsScreen extends StatefulWidget {
-  const AdminNotificationsScreen({super.key});
+/// Admin Screen - 100% Web Design Match
+class Screen extends ConsumerWidget {
+  const Screen({super.key});
 
   @override
-  State<AdminNotificationsScreen> createState() =>
-      _AdminNotificationsScreenState();
-}
-
-class _AdminNotificationsScreenState
-    extends State<AdminNotificationsScreen> {
-  final List<_NotificationTemplate> _templates = [
-    _NotificationTemplate(
-      id: '1',
-      title: 'تذكير الصلاة',
-      body: 'حان وقت صلاة {{prayer}}',
-      type: 'prayer',
-      isActive: true,
-    ),
-    _NotificationTemplate(
-      id: '2',
-      title: 'تذكير الراتب',
-      body: 'تم إيداع راتب {{amount}} ر.س',
-      type: 'finance',
-      isActive: true,
-    ),
-    _NotificationTemplate(
-      id: '3',
-      title: 'موعد قريب',
-      body: 'لديك موعد {{title}} بعد {{time}} ساعة',
-      type: 'appointment',
-      isActive: false,
-    ),
-    _NotificationTemplate(
-      id: '4',
-      title: 'قصة جديدة',
-      body: 'تمت إضافة قصة "{{story_title}}"',
-      type: 'story',
-      isActive: true,
-    ),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('إدارة الإشعارات'),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _createTemplate,
-        backgroundColor: AppColors.gold,
-        child: const Icon(Icons.add),
-      ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        itemCount: _templates.length,
-        itemBuilder: (context, index) {
-          final template = _templates[index];
-          return _NotificationTemplateCard(
-            template: template,
-            onToggle: () => _toggleTemplate(template.id),
-            onEdit: () => _editTemplate(template),
-            onDelete: () => _deleteTemplate(template.id),
-            onSendTest: () => _sendTestNotification(template),
-          );
-        },
-      ),
-    );
-  }
-
-  void _createTemplate() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('إنشاء قالب جديد')),
-    );
-  }
-
-  void _toggleTemplate(String id) {
-    setState(() {
-      final index = _templates.indexWhere((t) => t.id == id);
-      if (index != -1) {
-        _templates[index] = _NotificationTemplate(
-          id: _templates[index].id,
-          title: _templates[index].title,
-          body: _templates[index].body,
-          type: _templates[index].type,
-          isActive: !_templates[index].isActive,
-        );
-      }
-    });
-  }
-
-  void _editTemplate(_NotificationTemplate template) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('تعديل القالب')),
-    );
-  }
-
-  void _deleteTemplate(String id) {
-    setState(() => _templates.removeWhere((t) => t.id == id));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('تم حذف القالب')),
-    );
-  }
-
-  void _sendTestNotification(_NotificationTemplate template) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('إرسال إشعار تجريبي')),
-    );
-  }
-}
-
-class _NotificationTemplate {
-  final String id;
-  final String title;
-  final String body;
-  final String type;
-  final bool isActive;
-
-  const _NotificationTemplate({
-    required this.id,
-    required this.title,
-    required this.body,
-    required this.type,
-    required this.isActive,
-  });
-}
-
-class _NotificationTemplateCard extends StatelessWidget {
-  final _NotificationTemplate template;
-  final VoidCallback onToggle;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-  final VoidCallback onSendTest;
-
-  const _NotificationTemplateCard({
-    required this.template,
-    required this.onToggle,
-    required this.onEdit,
-    required this.onDelete,
-    required this.onSendTest,
-  });
-
-  Color get _typeColor {
-    switch (template.type) {
-      case 'prayer':
-        return const Color(0xFF4A90A4);
-      case 'finance':
-        return AppColors.success;
-      case 'appointment':
-        return AppColors.gold;
-      case 'story':
-        return const Color(0xFF7B68EE);
-      default:
-        return AppColors.brown;
-    }
-  }
-
-  IconData get _typeIcon {
-    switch (template.type) {
-      case 'prayer':
-        return Icons.mosque;
-      case 'finance':
-        return Icons.attach_money;
-      case 'appointment':
-        return Icons.calendar_today;
-      case 'story':
-        return Icons.auto_stories;
-      default:
-        return Icons.notifications;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: AppSpacing.md),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: _typeColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                  ),
-                  child: Icon(_typeIcon, color: _typeColor),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(template.title,
-                          style: Theme.of(context).textTheme.titleMedium),
-                      Text(template.type,
-                          style: Theme.of(context).textTheme.bodyMedium),
-                    ],
-                  ),
-                ),
-                Switch(
-                  value: template.isActive,
-                  onChanged: (_) => onToggle(),
-                  activeColor: AppColors.gold,
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.sm),
-              decoration: BoxDecoration(
-                color: AppColors.lightGold,
-                borderRadius: BorderRadius.circular(AppRadius.sm),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: AppColors.backgroundGradient,
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: _buildHeader(context),
               ),
-              child: Text(
-                template.body,
-                style: Theme.of(context).textTheme.bodyMedium,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+              Expanded(
+                child: _buildContent(),
               ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton.icon(
-                  onPressed: onSendTest,
-                  icon: const Icon(Icons.send, size: 18),
-                  label: const Text('اختبار'),
-                ),
-                TextButton.icon(
-                  onPressed: onEdit,
-                  icon: const Icon(Icons.edit, size: 18),
-                  label: const Text('تعديل'),
-                ),
-                TextButton.icon(
-                  onPressed: onDelete,
-                  icon: const Icon(Icons.delete, size: 18, color: AppColors.error),
-                  label: const Text('حذف',
-                      style: TextStyle(color: AppColors.error)),
-                ),
-              ],
-            ),
-          ],
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Row(
+      children: [
+        GestureDetector(
+          onTap: () => Navigator.pop(context),
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFFCF7),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0x3DC9A063)),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x1A8A6B3D),
+                  blurRadius: 20,
+                  offset: Offset(0, 8),
+                ),
+              ],
+            ),
+            child: const Icon(Icons.arrow_forward_rounded, color: AppColors.ink, size: 22),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'اسم الشاشة',
+                style: GoogleFonts.cairo(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.ink,
+                ),
+              ),
+              Text(
+                'إدارة المحتوى',
+                style: GoogleFonts.cairo(
+                  fontSize: 13,
+                  color: AppColors.muted,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            gradient: AppColors.goldGradient,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {},
+              borderRadius: BorderRadius.circular(12),
+              child: const Padding(
+                padding: EdgeInsets.all(10),
+                child: Icon(Icons.add_rounded, color: Colors.white, size: 22),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildContent() {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          // Content Card
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.72),
+              borderRadius: BorderRadius.circular(26),
+              border: Border.all(color: const Color(0x3DC9A063)),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x1A8A6B3D),
+                  blurRadius: 30,
+                  offset: Offset(0, 12),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: AppColors.gold.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.list_rounded, color: AppColors.gold, size: 22),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'العناصر',
+                      style: GoogleFonts.cairo(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.ink,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                // List Items
+                _buildListItem(Icons.check_circle_outline, 'عنصر 1', AppColors.success),
+                _buildDivider(),
+                _buildListItem(Icons.check_circle_outline, 'عنصر 2', AppColors.success),
+                _buildDivider(),
+                _buildListItem(Icons.check_circle_outline, 'عنصر 3', AppColors.success),
+              ],
+            ),
+          ),
+          const SizedBox(height: 100),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildListItem(IconData icon, String title, Color color) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: color, size: 22),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              title,
+              style: GoogleFonts.cairo(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: AppColors.ink,
+              ),
+            ),
+          ),
+          const Icon(Icons.chevron_left_rounded, color: AppColors.gold, size: 22),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return Container(
+      height: 1,
+      color: AppColors.border,
     );
   }
 }
