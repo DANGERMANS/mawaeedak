@@ -14,6 +14,15 @@ import '../features/story/presentation/screens/story_screen.dart';
 import '../features/admin/presentation/screens/screens.dart';
 import '../features/auth/presentation/screens/auth_screen.dart';
 import '../features/welcome/presentation/screens/welcome_screen.dart';
+import '../features/static/presentation/screens/not_found_screen.dart';
+import '../features/static/presentation/screens/splash_screen.dart';
+import '../features/static/presentation/screens/disclaimer_screen.dart';
+import '../features/static/presentation/screens/terms_screen.dart';
+import '../features/static/presentation/screens/privacy_screen.dart';
+import '../features/static/presentation/screens/support_screen.dart';
+import '../features/static/presentation/screens/auth_callback_screen.dart';
+import '../features/static/presentation/screens/reference_clone_screen.dart';
+import '../features/static/presentation/screens/reset_password_screen.dart';
 import '../core/widgets/main_scaffold.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -133,6 +142,117 @@ final appRouter = GoRouter(
       name: 'story',
       builder: (context, state) => const StoryScreen(),
     ),
+    // Admin Routes
+    GoRoute(
+      path: '/admin',
+      name: 'admin',
+      builder: (context, state) => const AdminLayoutScreen(),
+    ),
+    GoRoute(
+      path: '/admin/dashboard',
+      name: 'admin-dashboard',
+      builder: (context, state) => const AdminDashboardScreen(),
+    ),
+    GoRoute(
+      path: '/admin/events',
+      name: 'admin-events',
+      builder: (context, state) => const AdminEventsScreen(),
+    ),
+    GoRoute(
+      path: '/admin/members',
+      name: 'admin-members',
+      builder: (context, state) => const AdminMembersScreen(),
+    ),
+    GoRoute(
+      path: '/admin/finance',
+      name: 'admin-finance',
+      builder: (context, state) => const AdminFinanceScreen(),
+    ),
+    GoRoute(
+      path: '/admin/settings',
+      name: 'admin-settings',
+      builder: (context, state) => const AdminSettingsScreen(),
+    ),
+    GoRoute(
+      path: '/admin/automation',
+      name: 'admin-automation',
+      builder: (context, state) => const AdminAutomationScreen(),
+    ),
+    GoRoute(
+      path: '/admin/complaints',
+      name: 'admin-complaints',
+      builder: (context, state) => const AdminComplaintsScreen(),
+    ),
+    GoRoute(
+      path: '/admin/data',
+      name: 'admin-data',
+      builder: (context, state) => const AdminDataLayerScreen(),
+    ),
+    GoRoute(
+      path: '/admin/messages',
+      name: 'admin-messages',
+      builder: (context, state) => const AdminMessagesScreen(),
+    ),
+    GoRoute(
+      path: '/admin/news',
+      name: 'admin-news',
+      builder: (context, state) => const AdminNewsJobsScreen(),
+    ),
+    GoRoute(
+      path: '/admin/notifications',
+      name: 'admin-notifications',
+      builder: (context, state) => const AdminNotificationsScreen(),
+    ),
+    GoRoute(
+      path: '/admin/finance/official',
+      name: 'admin-finance-official',
+      builder: (context, state) => const AdminOfficialFinancialScreen(),
+    ),
+    GoRoute(
+      path: '/admin/prayer',
+      name: 'admin-prayer',
+      builder: (context, state) => const AdminOfficialPrayerScreen(),
+    ),
+    GoRoute(
+      path: '/admin/permissions',
+      name: 'admin-permissions',
+      builder: (context, state) => const AdminPermissionsScreen(),
+    ),
+    GoRoute(
+      path: '/admin/reports',
+      name: 'admin-reports',
+      builder: (context, state) => const AdminReportsScreen(),
+    ),
+    GoRoute(
+      path: '/admin/social',
+      name: 'admin-social',
+      builder: (context, state) => const AdminSocialScreen(),
+    ),
+    GoRoute(
+      path: '/admin/story',
+      name: 'admin-story',
+      builder: (context, state) => const AdminStoryScreen(),
+    ),
+    GoRoute(
+      path: '/admin/support',
+      name: 'admin-support',
+      builder: (context, state) => const AdminSupportScreen(),
+    ),
+    GoRoute(
+      path: '/admin/themes',
+      name: 'admin-themes',
+      builder: (context, state) => const AdminThemesScreen(),
+    ),
+    GoRoute(
+      path: '/admin/guide',
+      name: 'admin-guide',
+      builder: (context, state) => const AdminVisualGuideScreen(),
+    ),
+    GoRoute(
+      path: '/admin/boundary',
+      name: 'admin-boundary',
+      builder: (context, state) => const AdminRuntimeBoundaryScreen(),
+    ),
     // Auth & Welcome Routes
     GoRoute(
       path: '/welcome',
@@ -152,7 +272,49 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/reset-password',
       name: 'reset-password',
-      builder: (context, state) => const AuthScreen(),
+      builder: (context, state) => const ResetPasswordScreen(),
+    ),
+    // Static Pages
+    GoRoute(
+      path: '/splash',
+      name: 'splash',
+      builder: (context, state) => const SplashScreen(),
+    ),
+    GoRoute(
+      path: '/disclaimer',
+      name: 'disclaimer',
+      builder: (context, state) => const DisclaimerScreen(),
+    ),
+    GoRoute(
+      path: '/terms',
+      name: 'terms',
+      builder: (context, state) => const TermsScreen(),
+    ),
+    GoRoute(
+      path: '/privacy',
+      name: 'privacy',
+      builder: (context, state) => const PrivacyScreen(),
+    ),
+    GoRoute(
+      path: '/support',
+      name: 'support',
+      builder: (context, state) => const SupportScreen(),
+    ),
+    GoRoute(
+      path: '/auth/callback',
+      name: 'auth-callback',
+      builder: (context, state) => const AuthCallbackScreen(),
+    ),
+    GoRoute(
+      path: '/reference',
+      name: 'reference',
+      builder: (context, state) => const ReferenceCloneScreen(),
+    ),
+    // 404 Not Found
+    GoRoute(
+      path: '*',
+      name: 'not-found',
+      builder: (context, state) => const NotFoundScreen(),
     ),
   ],
 );
