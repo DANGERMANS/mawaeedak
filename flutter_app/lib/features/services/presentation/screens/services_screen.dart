@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_theme.dart';
 
-/// Services Screen - Luxury Saudi Design
+/// Services Screen - 100% Web Design Match
 class ServicesScreen extends ConsumerWidget {
   const ServicesScreen({super.key});
 
@@ -19,15 +19,15 @@ class ServicesScreen extends ConsumerWidget {
           bottom: false,
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.all(AppSpacing.md),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: AppSpacing.xl),
+                const SizedBox(height: 24),
                 _buildHeader(),
-                const SizedBox(height: AppSpacing.lg),
+                const SizedBox(height: 20),
                 _buildServicesGrid(context),
-                const SizedBox(height: AppSpacing.lg),
+                const SizedBox(height: 20),
                 _buildCentersSection(context),
                 const SizedBox(height: 100),
               ],
@@ -51,12 +51,12 @@ class ServicesScreen extends ConsumerWidget {
             height: 1.2,
           ),
         ),
+        const SizedBox(height: 4),
         Text(
           'مراكز الخدمات الحكومية',
           style: GoogleFonts.cairo(
             fontSize: 14,
             color: AppColors.muted,
-            height: 1.4,
           ),
         ),
       ],
@@ -104,12 +104,18 @@ class ServicesScreen extends ConsumerWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(AppRadius.xl),
-          border: Border.all(color: AppColors.border, width: 1),
-          boxShadow: AppShadows.card,
+          color: const Color(0xFFFFFCF7),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: const Color(0x3DC9A063), width: 1),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x1A8A6B3D),
+              blurRadius: 30,
+              offset: Offset(0, 12),
+            ),
+          ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -119,11 +125,11 @@ class ServicesScreen extends ConsumerWidget {
               height: 56,
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(AppRadius.md),
+                borderRadius: BorderRadius.circular(16),
               ),
               child: Icon(icon, color: color, size: 28),
             ),
-            const SizedBox(height: AppSpacing.sm),
+            const SizedBox(height: 12),
             Text(
               title,
               style: GoogleFonts.cairo(
@@ -140,81 +146,85 @@ class ServicesScreen extends ConsumerWidget {
   }
 
   Widget _buildCentersSection(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.sm),
-              decoration: BoxDecoration(
-                color: AppColors.gold.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(AppRadius.md),
-              ),
-              child: const Icon(
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: const Color(0x3DC9A063), width: 1),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x1A8A6B3D),
+            blurRadius: 30,
+            offset: Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
                 Icons.business_rounded,
                 color: AppColors.gold,
-                size: 20,
+                size: 24,
               ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Text(
-              'مراكز الخدمات',
-              style: GoogleFonts.cairo(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: AppColors.ink,
-                height: 1.4,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.md),
-        Container(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          decoration: BoxDecoration(
-            color: AppColors.card,
-            borderRadius: BorderRadius.circular(AppRadius.xxl),
-            border: Border.all(color: AppColors.border, width: 1),
-            boxShadow: AppShadows.card,
-          ),
-          child: Column(
-            children: [
-              _buildCenterItem(
-                icon: Icons.work_history_rounded,
-                title: 'مركز العمل',
-                subtitle: '12 خدمة',
-                color: AppColors.gold,
-                onTap: () => context.pushNamed('centers-work'),
-              ),
-              const Divider(height: 24),
-              _buildCenterItem(
-                icon: Icons.school_rounded,
-                title: 'مركز التعليم',
-                subtitle: '8 خدمات',
-                color: AppColors.success,
-                onTap: () => context.pushNamed('centers-study'),
-              ),
-              const Divider(height: 24),
-              _buildCenterItem(
-                icon: Icons.flight_rounded,
-                title: 'مركز السفر',
-                subtitle: '5 خدمات',
-                color: AppColors.info,
-                onTap: () => context.pushNamed('centers-travel'),
-              ),
-              const Divider(height: 24),
-              _buildCenterItem(
-                icon: Icons.newspaper_rounded,
-                title: 'مركز الأخبار',
-                subtitle: '4 خدمات',
-                color: AppColors.goldDark,
-                onTap: () => context.pushNamed('centers-news'),
+              const SizedBox(width: 8),
+              Text(
+                'مراكز الخدمات',
+                style: GoogleFonts.cairo(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.ink,
+                ),
               ),
             ],
           ),
-        ),
-      ],
+          const SizedBox(height: 16),
+          _buildCenterItem(
+            icon: Icons.work_history_rounded,
+            title: 'مركز العمل',
+            subtitle: '12 خدمة',
+            color: AppColors.gold,
+            onTap: () => context.pushNamed('centers-work'),
+          ),
+          _buildDivider(),
+          _buildCenterItem(
+            icon: Icons.school_rounded,
+            title: 'مركز التعليم',
+            subtitle: '8 خدمات',
+            color: AppColors.success,
+            onTap: () => context.pushNamed('centers-study'),
+          ),
+          _buildDivider(),
+          _buildCenterItem(
+            icon: Icons.flight_rounded,
+            title: 'مركز السفر',
+            subtitle: '5 خدمات',
+            color: AppColors.info,
+            onTap: () => context.pushNamed('centers-travel'),
+          ),
+          _buildDivider(),
+          _buildCenterItem(
+            icon: Icons.newspaper_rounded,
+            title: 'مركز الأخبار',
+            subtitle: '4 خدمات',
+            color: AppColors.goldDark,
+            onTap: () => context.pushNamed('centers-news'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Container(
+        height: 1,
+        color: AppColors.border,
+      ),
     );
   }
 
@@ -234,11 +244,11 @@ class ServicesScreen extends ConsumerWidget {
             height: 48,
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(AppRadius.md),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: color, size: 24),
           ),
-          const SizedBox(width: AppSpacing.md),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

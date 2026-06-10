@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_theme.dart';
 
-/// More Screen - Luxury Saudi Design
+/// More Screen - 100% Web Design Match
 class MoreScreen extends ConsumerWidget {
   const MoreScreen({super.key});
 
@@ -19,17 +19,17 @@ class MoreScreen extends ConsumerWidget {
           bottom: false,
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.all(AppSpacing.md),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: AppSpacing.xl),
+                const SizedBox(height: 24),
                 _buildHeader(),
-                const SizedBox(height: AppSpacing.lg),
+                const SizedBox(height: 20),
                 _buildQuickLinks(context),
-                const SizedBox(height: AppSpacing.lg),
+                const SizedBox(height: 20),
                 _buildSettingsSection(context),
-                const SizedBox(height: AppSpacing.lg),
+                const SizedBox(height: 20),
                 _buildAppInfo(),
                 const SizedBox(height: 100),
               ],
@@ -53,12 +53,12 @@ class MoreScreen extends ConsumerWidget {
             height: 1.2,
           ),
         ),
+        const SizedBox(height: 4),
         Text(
           'إعدادات وتطبيقات أخرى',
           style: GoogleFonts.cairo(
             fontSize: 14,
             color: AppColors.muted,
-            height: 1.4,
           ),
         ),
       ],
@@ -76,20 +76,26 @@ class MoreScreen extends ConsumerWidget {
     return Column(
       children: links.map((link) {
         return Container(
-          margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+          margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
-            color: AppColors.card,
-            borderRadius: BorderRadius.circular(AppRadius.xl),
-            border: Border.all(color: AppColors.border, width: 1),
-            boxShadow: AppShadows.card,
+            color: const Color(0xFFFFFCF7),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: const Color(0x3DC9A063), width: 1),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x1A8A6B3D),
+                blurRadius: 30,
+                offset: Offset(0, 12),
+              ),
+            ],
           ),
           child: Material(
             color: Colors.transparent,
             child: InkWell(
               onTap: () {},
-              borderRadius: BorderRadius.circular(AppRadius.xl),
+              borderRadius: BorderRadius.circular(22),
               child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
+                padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
                     Container(
@@ -97,7 +103,7 @@ class MoreScreen extends ConsumerWidget {
                       height: 48,
                       decoration: BoxDecoration(
                         color: AppColors.gold.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(AppRadius.md),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
                         link['icon'] as IconData,
@@ -105,7 +111,7 @@ class MoreScreen extends ConsumerWidget {
                         size: 24,
                       ),
                     ),
-                    const SizedBox(width: AppSpacing.md),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -144,76 +150,79 @@ class MoreScreen extends ConsumerWidget {
   }
 
   Widget _buildSettingsSection(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.sm),
-              decoration: BoxDecoration(
-                color: AppColors.goldDark.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(AppRadius.md),
-              ),
-              child: const Icon(
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: const Color(0x3DC9A063), width: 1),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x1A8A6B3D),
+            blurRadius: 30,
+            offset: Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
                 Icons.settings_outlined,
                 color: AppColors.goldDark,
-                size: 20,
+                size: 24,
               ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Text(
-              'الإعدادات',
-              style: GoogleFonts.cairo(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: AppColors.ink,
-                height: 1.4,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.md),
-        Container(
-          decoration: BoxDecoration(
-            color: AppColors.card,
-            borderRadius: BorderRadius.circular(AppRadius.xxl),
-            border: Border.all(color: AppColors.border, width: 1),
-            boxShadow: AppShadows.card,
-          ),
-          child: Column(
-            children: [
-              _buildSettingItem(
-                icon: Icons.dark_mode_outlined,
-                title: 'المظهر',
-                subtitle: 'فاتح',
-                onTap: () {},
-              ),
-              Container(height: 1, color: AppColors.border, margin: const EdgeInsets.symmetric(horizontal: 16)),
-              _buildSettingItem(
-                icon: Icons.language_outlined,
-                title: 'اللغة',
-                subtitle: 'العربية',
-                onTap: () {},
-              ),
-              Container(height: 1, color: AppColors.border, margin: const EdgeInsets.symmetric(horizontal: 16)),
-              _buildSettingItem(
-                icon: Icons.notifications_outlined,
-                title: 'التنبيهات',
-                subtitle: 'مفعّلة',
-                onTap: () {},
-              ),
-              Container(height: 1, color: AppColors.border, margin: const EdgeInsets.symmetric(horizontal: 16)),
-              _buildSettingItem(
-                icon: Icons.lock_outline,
-                title: 'الخصوصية',
-                subtitle: 'إدارة البيانات',
-                onTap: () => context.pushNamed('privacy'),
+              const SizedBox(width: 8),
+              Text(
+                'الإعدادات',
+                style: GoogleFonts.cairo(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.ink,
+                ),
               ),
             ],
           ),
-        ),
-      ],
+          const SizedBox(height: 16),
+          _buildSettingItem(
+            icon: Icons.dark_mode_outlined,
+            title: 'المظهر',
+            subtitle: 'فاتح',
+            onTap: () {},
+          ),
+          _buildSettingDivider(),
+          _buildSettingItem(
+            icon: Icons.language_outlined,
+            title: 'اللغة',
+            subtitle: 'العربية',
+            onTap: () {},
+          ),
+          _buildSettingDivider(),
+          _buildSettingItem(
+            icon: Icons.notifications_outlined,
+            title: 'التنبيهات',
+            subtitle: 'مفعّلة',
+            onTap: () {},
+          ),
+          _buildSettingDivider(),
+          _buildSettingItem(
+            icon: Icons.lock_outline,
+            title: 'الخصوصية',
+            subtitle: 'إدارة البيانات',
+            onTap: () => context.pushNamed('privacy'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSettingDivider() {
+    return Container(
+      height: 1,
+      color: AppColors.border,
+      margin: const EdgeInsets.symmetric(horizontal: 16),
     );
   }
 
@@ -228,11 +237,11 @@ class MoreScreen extends ConsumerWidget {
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
+          padding: const EdgeInsets.all(12),
           child: Row(
             children: [
               Icon(icon, color: AppColors.goldDark, size: 24),
-              const SizedBox(width: AppSpacing.md),
+              const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   title,
@@ -250,7 +259,7 @@ class MoreScreen extends ConsumerWidget {
                   color: AppColors.muted,
                 ),
               ),
-              const SizedBox(width: AppSpacing.sm),
+              const SizedBox(width: 8),
               const Icon(
                 Icons.chevron_left_rounded,
                 color: AppColors.muted,
@@ -265,12 +274,18 @@ class MoreScreen extends ConsumerWidget {
 
   Widget _buildAppInfo() {
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(AppRadius.xxl),
-        border: Border.all(color: AppColors.border, width: 1),
-        boxShadow: AppShadows.card,
+        color: Colors.white.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: const Color(0x3DC9A063), width: 1),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x1A8A6B3D),
+            blurRadius: 30,
+            offset: Offset(0, 12),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -279,7 +294,7 @@ class MoreScreen extends ConsumerWidget {
             height: 64,
             decoration: BoxDecoration(
               gradient: AppColors.goldGradient,
-              borderRadius: BorderRadius.circular(AppRadius.lg),
+              borderRadius: BorderRadius.circular(18),
             ),
             child: const Icon(
               Icons.calendar_month_rounded,
@@ -287,12 +302,12 @@ class MoreScreen extends ConsumerWidget {
               size: 32,
             ),
           ),
-          const SizedBox(height: AppSpacing.md),
+          const SizedBox(height: 16),
           Text(
             'مواعيدك',
             style: GoogleFonts.cairo(
               fontSize: 18,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w800,
               color: AppColors.ink,
             ),
           ),
@@ -303,20 +318,16 @@ class MoreScreen extends ConsumerWidget {
               color: AppColors.muted,
             ),
           ),
-          const SizedBox(height: AppSpacing.md),
+          const SizedBox(height: 16),
           Container(
             height: 1,
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [
-                  Colors.transparent,
-                  AppColors.gold.withValues(alpha: 0.3),
-                  Colors.transparent,
-                ],
+                colors: [Colors.transparent, AppColors.gold.withValues(alpha: 0.3), Colors.transparent],
               ),
             ),
           ),
-          const SizedBox(height: AppSpacing.md),
+          const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
