@@ -1,60 +1,106 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
-import '../../core/constants/app_constants.dart';
 
-/// Main Scaffold with Glass Morphism Bottom Navigation
+/// Main Scaffold with Bottom Navigation
+/// Order: الرئيسية, الرواتب, الخدمات, التقويم, المزيد
 class MainScaffold extends StatelessWidget {
   final Widget child;
 
   const MainScaffold({super.key, required this.child});
 
+  int _getCurrentIndex(BuildContext context) {
+    final location = GoRouterState.of(context).uri.path;
+    if (location.startsWith('/home')) return 0;
+    if (location.startsWith('/salary')) return 1;
+    if (location.startsWith('/services')) return 2;
+    if (location.startsWith('/calendar')) return 3;
+    if (location.startsWith('/more')) return 4;
+    return 0;
+  }
+
+  void _onTap(BuildContext context, int index) {
+    switch (index) {
+      case 0:
+        context.go('/home');
+        break;
+      case 1:
+        context.go('/salary');
+        break;
+      case 2:
+        context.go('/services');
+        break;
+      case 3:
+        context.go('/calendar');
+        break;
+      case 4:
+        context.go('/more');
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final currentIndex = _getCurrentIndex(context);
+
     return Scaffold(
       body: child,
-      extendBody: true,
-      bottomNavigationBar: const _GlassBottomNavBar(),
-    );
-  }
-}
-
-class _GlassBottomNavBar extends StatelessWidget {
-  const _GlassBottomNavBar();
-
-  @override
-  Widget build(BuildContext context) {
-    final location = GoRouterState.of(context).uri.path;
-    final currentIndex = _getIndexFromLocation(location);
-
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceOverlay,
-        borderRadius: BorderRadius.circular(AppRadius.xxl),
-        border: Border.all(color: AppColors.border, width: 1),
-        boxShadow: AppShadows.glass,
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(AppRadius.xxl),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0x1E8A6B3D),
+              blurRadius: 20,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
         child: SafeArea(
           top: false,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          child: Container(
+            height: 70,
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: TabConfig.tabs.asMap().entries.map((entry) {
-                final index = entry.key;
-                final tab = entry.value;
-                final isSelected = currentIndex == index;
-                
-                return _NavTab(
-                  icon: _getIconData(tab['icon']!),
-                  label: tab['label']!,
-                  isSelected: isSelected,
-                  onTap: () => _navigateToTab(context, tab['name']!),
-                );
-              }).toList(),
+              children: [
+                _buildNavItem(
+                  context,
+                  index: 0,
+                  icon: Icons.home_rounded,
+                  label: 'الرئيسية',
+                  isSelected: currentIndex == 0,
+                ),
+                _buildNavItem(
+                  context,
+                  index: 1,
+                  icon: Icons.account_balance_wallet_rounded,
+                  label: 'الرواتب',
+                  isSelected: currentIndex == 1,
+                ),
+                _buildNavItem(
+                  context,
+                  index: 2,
+                  icon: Icons.grid_view_rounded,
+                  label: 'الخدمات',
+                  isSelected: currentIndex == 2,
+                ),
+                _buildNavItem(
+                  context,
+                  index: 3,
+                  icon: Icons.calendar_month_rounded,
+                  label: 'التقويم',
+                  isSelected: currentIndex == 3,
+                ),
+                _buildNavItem(
+                  context,
+                  index: 4,
+                  icon: Icons.more_horiz_rounded,
+                  label: 'المزيد',
+                  isSelected: currentIndex == 4,
+                ),
+              ],
             ),
           ),
         ),
@@ -62,98 +108,47 @@ class _GlassBottomNavBar extends StatelessWidget {
     );
   }
 
-  int _getIndexFromLocation(String location) {
-    for (int i = 0; i < TabConfig.tabs.length; i++) {
-      if (location.startsWith('/${TabConfig.tabs[i]['name']}')) {
-        return i;
-      }
-    }
-    return 0;
-  }
-
-  void _navigateToTab(BuildContext context, String tabName) {
-    context.goNamed(tabName);
-  }
-
-  IconData _getIconData(String iconName) {
-    switch (iconName) {
-      case 'home':
-        return Icons.home_outlined;
-      case 'attach_money':
-        return Icons.account_balance_wallet_outlined;
-      case 'grid_view':
-        return Icons.apps_outlined;
-      case 'calendar_today':
-        return Icons.calendar_today_outlined;
-      case 'more_horiz':
-        return Icons.more_horiz_outlined;
-      default:
-        return Icons.circle_outlined;
-    }
-  }
-}
-
-class _NavTab extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _NavTab({
-    required this.icon,
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeOutCubic,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: isSelected 
-              ? AppColors.gold.withValues(alpha: 0.12)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              child: Icon(
-                icon,
-                size: 24,
-                color: isSelected ? AppColors.gold : AppColors.muted,
-              ),
-            ),
-            const SizedBox(height: 4),
-            AnimatedDefaultTextStyle(
-              duration: const Duration(milliseconds: 250),
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                color: isSelected ? AppColors.gold : AppColors.muted,
-              ),
-              child: Text(label),
-            ),
-            if (isSelected) ...[
-              const SizedBox(height: 6),
-              Container(
-                width: 20,
-                height: 3,
+  Widget _buildNavItem(
+    BuildContext context, {
+    required int index,
+    required IconData icon,
+    required String label,
+    required bool isSelected,
+  }) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => _onTap(context, index),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.gold,
-                  borderRadius: BorderRadius.circular(1.5),
+                  color: isSelected 
+                      ? AppColors.gold.withValues(alpha: 0.12)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  icon,
+                  size: 24,
+                  color: isSelected ? AppColors.gold : AppColors.muted,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: GoogleFonts.cairo(
+                  fontSize: 11,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  color: isSelected ? AppColors.gold : AppColors.muted,
                 ),
               ),
             ],
-          ],
+          ),
         ),
       ),
     );
