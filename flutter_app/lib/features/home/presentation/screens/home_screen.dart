@@ -5,17 +5,41 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../data/models/models.dart';
+import '../../../../services/prayer_system.dart';
 import '../../providers/providers.dart';
 
 /// Home Screen - Luxury Saudi Design
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  PrayerData? prayerData;
+
+  @override
+  void initState() {
+    super.initState();
+    loadPrayerData();
+  }
+
+  Future<void> loadPrayerData() async {
+    final system = PrayerSystem();
+    final data = await system.getPrayerData();
+    if (!mounted) return;
+    setState(() {
+      prayerData = data;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final prayerTimes = ref.watch(prayerTimesProvider);
     final financialEvents = ref.watch(financialEventsProvider);
     final dailyMessage = ref.watch(dailyMessageProvider);
+    final activePrayerTimes = prayerData == null ? prayerTimes : _prayerTimesFromData(prayerData!);
 
     return Scaffold(
       body: Container(
@@ -38,7 +62,7 @@ class HomeScreen extends ConsumerWidget {
                 _buildDailyMessageCard(dailyMessage),
                 const SizedBox(height: AppSpacing.lg),
                 // Prayer Times Section
-                _buildPrayerSection(prayerTimes),
+                _buildPrayerSection(activePrayerTimes),
                 const SizedBox(height: AppSpacing.lg),
                 // Financial Events Section
                 _buildFinancialSection(financialEvents),
@@ -172,6 +196,10 @@ class HomeScreen extends ConsumerWidget {
   }
 
   Widget _buildPrayerSection(PrayerTimes times) {
+    final prayerSubtitle = prayerData == null
+        ? 'جاري تحديث المواقيت حسب موقعك'
+        : 'الآن ${prayerData!.currentPrayer}، القادمة ${prayerData!.nextPrayer} بعد ${_formatDuration(prayerData!.countdownToNext)}';
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -203,7 +231,7 @@ class HomeScreen extends ConsumerWidget {
                   ),
                 ),
                 Text(
-                  'الرياض، المملكة العربية السعودية',
+                  prayerSubtitle,
                   style: GoogleFonts.cairo(
                     fontSize: 12,
                     color: AppColors.muted,
@@ -519,6 +547,29 @@ class HomeScreen extends ConsumerWidget {
         ),
       ],
     );
+  }
+
+  PrayerTimes _prayerTimesFromData(PrayerData data) {
+    return PrayerTimes(
+      fajr: _formatTime(data.timings['الفجر']),
+      sunrise: _formatTime(data.sunrise),
+      dhuhr: _formatTime(data.timings['الظهر']),
+      asr: _formatTime(data.timings['العصر']),
+      maghrib: _formatTime(data.timings['المغرب']),
+      isha: _formatTime(data.timings['العشاء']),
+    );
+  }
+
+  String _formatTime(DateTime? time) {
+    if (time == null) return '--:--';
+    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+  }
+
+  String _formatDuration(Duration duration) {
+    final safeDuration = duration.isNegative ? Duration.zero : duration;
+    final hours = safeDuration.inHours;
+    final minutes = safeDuration.inMinutes.remainder(60);
+    return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
   }
 }
 
