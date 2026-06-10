@@ -1,14 +1,14 @@
 /**
  * Tab Layout — Bottom Tab Navigation for Mawaeedak Mobile
- *
+ * 
  * Luxury design matching Mawaeedak identity:
- * - RTL order: الرئيسية, الرواتب, الخدمات, التقويم, المزيد
+ * - RTL order: المزيد, التقويم, الخدمات, الرواتب, الرئيسية
  * - Active: capsule with cream background + gold icon + gold text + gold underline
  * - Inactive: no background + brown icon + brown text
  * - Ivory/cream background with gold border
  * - Soft shadow, large border-radius
  * - Support safe-area-bottom
- * - Using Feather icons: Home, DollarSign, Grid, Calendar, MoreHorizontal
+ * - Using Feather icons
  */
 
 import { Tabs } from 'expo-router';
@@ -19,11 +19,11 @@ import { Feather } from '@expo/vector-icons';
 // Theme colors - Mawaeedak luxury identity
 const GOLD = '#C9A063';
 const BROWN = '#8A6B3D';
-const INK = '#2F2B25';
 const CREAM = '#FAF7F2';
 const LIGHT_CREAM = '#F5EFE4';
 
 // Tab data with Feather icon names
+// RTL order: المزيد, التقويم, الخدمات, الرواتب, الرئيسية
 const TABS = [
   { name: 'home', label: 'الرئيسية', iconName: 'home' as const },
   { name: 'salary', label: 'الرواتب', iconName: 'dollar-sign' as const },
@@ -34,13 +34,7 @@ const TABS = [
 
 // Icon component
 function TabIcon({ name, size, color }: { name: string; size: number; color: string }) {
-  return (
-    <Feather
-      name={name as any}
-      size={size}
-      color={color}
-    />
-  );
+  return <Feather name={name as any} size={size} color={color} />;
 }
 
 // Tab item component
@@ -133,7 +127,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     alignItems: 'center',
-    paddingBottom: 20, // safe-area-bottom
+    paddingBottom: 20,
     direction: I18nManager.isRTL ? 'rtl' : 'ltr',
   },
   tabBar: {
@@ -169,9 +163,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 2,
-  },
-  icon: {
-    fontSize: 22,
   },
   label: {
     fontSize: 9,
