@@ -1,5 +1,5 @@
-name: mawaeedak_flutter
-description: "مواعيدك - كل مواعيدك في مكان واحد"
+﻿name: mawaeedak_flutter
+description: "ظ…ظˆط§ط¹ظٹط¯ظƒ - ظƒظ„ ظ…ظˆط§ط¹ظٹط¯ظƒ ظپظٹ ظ…ظƒط§ظ† ظˆط§ط­ط¯"
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -37,5 +37,7 @@ flutter:
   generate: true
   
   assets:
+    - assets/images/reference/
     - assets/images/
     - assets/patterns/
+
