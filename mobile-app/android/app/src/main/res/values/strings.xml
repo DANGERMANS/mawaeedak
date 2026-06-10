@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">مواعيدك</string>
+    <string name="title_activity_main">مواعيدك</string>
+    <string name="package_name">com.mawaeedak.app</string>
+    <string name="custom_url_scheme">com.mawaeedak.app</string>
+</resources>
