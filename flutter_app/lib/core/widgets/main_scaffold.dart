@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
 
 /// Main Scaffold with Bottom Navigation
-/// Order: الرئيسية, الرواتب, الخدمات, التقويم, المزيد
+/// Order: الرئيسية, الرواتب, خدماتك, التقويم, المزيد
 class MainScaffold extends StatelessWidget {
   final Widget child;
 
@@ -83,7 +83,7 @@ class MainScaffold extends StatelessWidget {
                   context,
                   index: 2,
                   icon: Icons.grid_view_rounded,
-                  label: 'الخدمات',
+                  label: 'خدماتك',
                   isSelected: currentIndex == 2,
                 ),
                 _buildNavItem(
