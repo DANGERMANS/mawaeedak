@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/constants/app_constants.dart';
 
-/// Main Scaffold with Bottom Navigation Bar
+/// Main Scaffold with Glass Morphism Bottom Navigation
 class MainScaffold extends StatelessWidget {
   final Widget child;
 
@@ -14,13 +14,13 @@ class MainScaffold extends StatelessWidget {
     return Scaffold(
       body: child,
       extendBody: true,
-      bottomNavigationBar: const _CustomBottomNavBar(),
+      bottomNavigationBar: const _GlassBottomNavBar(),
     );
   }
 }
 
-class _CustomBottomNavBar extends StatelessWidget {
-  const _CustomBottomNavBar();
+class _GlassBottomNavBar extends StatelessWidget {
+  const _GlassBottomNavBar();
 
   @override
   Widget build(BuildContext context) {
@@ -28,36 +28,34 @@ class _CustomBottomNavBar extends StatelessWidget {
     final currentIndex = _getIndexFromLocation(location);
 
     return Container(
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       decoration: BoxDecoration(
-        color: AppColors.paper,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(30),
-          topRight: Radius.circular(30),
-        ),
-        border: Border.all(color: AppColors.borderGold),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.brown.withOpacity(0.12),
-            blurRadius: 20,
-            offset: const Offset(0, -4),
-          ),
-        ],
+        color: AppColors.surfaceOverlay,
+        borderRadius: BorderRadius.circular(AppRadius.xxl),
+        border: Border.all(color: AppColors.border, width: 1),
+        boxShadow: AppShadows.glass,
       ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: TabConfig.tabs.map((tab) {
-              final isSelected = currentIndex == TabConfig.tabs.indexOf(tab);
-              return _TabItem(
-                icon: _getIconData(tab['icon']!),
-                label: tab['label']!,
-                isSelected: isSelected,
-                onTap: () => _navigateToTab(context, tab['name']!),
-              );
-            }).toList(),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppRadius.xxl),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: TabConfig.tabs.asMap().entries.map((entry) {
+                final index = entry.key;
+                final tab = entry.value;
+                final isSelected = currentIndex == index;
+                
+                return _NavTab(
+                  icon: _getIconData(tab['icon']!),
+                  label: tab['label']!,
+                  isSelected: isSelected,
+                  onTap: () => _navigateToTab(context, tab['name']!),
+                );
+              }).toList(),
+            ),
           ),
         ),
       ),
@@ -82,26 +80,26 @@ class _CustomBottomNavBar extends StatelessWidget {
       case 'home':
         return Icons.home_outlined;
       case 'attach_money':
-        return Icons.attach_money;
+        return Icons.account_balance_wallet_outlined;
       case 'grid_view':
-        return Icons.grid_view_outlined;
+        return Icons.apps_outlined;
       case 'calendar_today':
         return Icons.calendar_today_outlined;
       case 'more_horiz':
-        return Icons.more_horiz;
+        return Icons.more_horiz_outlined;
       default:
         return Icons.circle_outlined;
     }
   }
 }
 
-class _TabItem extends StatelessWidget {
+class _NavTab extends StatelessWidget {
   final IconData icon;
   final String label;
   final bool isSelected;
   final VoidCallback onTap;
 
-  const _TabItem({
+  const _NavTab({
     required this.icon,
     required this.label,
     required this.isSelected,
@@ -114,37 +112,44 @@ class _TabItem extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOutCubic,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.cream : Colors.transparent,
-          borderRadius: BorderRadius.circular(22),
+          color: isSelected 
+              ? AppColors.gold.withValues(alpha: 0.12)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              size: 24,
-              color: isSelected ? AppColors.gold : AppColors.brown,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected ? AppColors.gold : AppColors.brown,
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              child: Icon(
+                icon,
+                size: 24,
+                color: isSelected ? AppColors.gold : AppColors.muted,
               ),
             ),
+            const SizedBox(height: 4),
+            AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 250),
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                color: isSelected ? AppColors.gold : AppColors.muted,
+              ),
+              child: Text(label),
+            ),
             if (isSelected) ...[
-              const SizedBox(height: 3),
+              const SizedBox(height: 6),
               Container(
-                width: 18,
-                height: 2.5,
+                width: 20,
+                height: 3,
                 decoration: BoxDecoration(
                   color: AppColors.gold,
-                  borderRadius: BorderRadius.circular(1.25),
+                  borderRadius: BorderRadius.circular(1.5),
                 ),
               ),
             ],
