@@ -58,15 +58,17 @@ mawaeedak/
 │       │   └── index.ts
 │       └── package.json
 │
-├── lib/                       # 📚 مكتبات مشتركة
-│   ├── api-spec/             # OpenAPI 3.1 YAML
-│   ├── api-client-react/     # React Query hooks (Orval)
-│   ├── api-zod/              # Zod v4 schemas
-│   └── db/                   # Drizzle ORM schema
+├── lib/                      # مكتبات مشتركة
+│   ├── api-client-react/     # Generated API client
+│   ├── api-zod/              # Zod schemas
+│   ├── db/                   # Drizzle ORM schemas
+│   └── shared/               # Shared utilities
 │
-├── docs/                      # 📄 وثائق المشروع
-├── scripts/                  # 🔧 أدوات وscripts
-└── package.json              # pnpm workspaces root
+├── .github/workflows/        # CI/CD pipelines
+├── package.json              # pnpm workspaces root
+├── AGENTS.md                 # Agent instructions
+├── ARCHITECTURE.md           # Architecture docs
+└── .env.example              # Environment template
 ```
 
 ---

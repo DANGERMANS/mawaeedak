@@ -28012,7 +28012,7 @@ var require_pino = __commonJS({
     function pinoBundlerAbsolutePath(p) {
       try {
         const path = __require("path");
-        const outputDir = "C:\\Users\\mn9\\OneDrive\\\u0627\u0644\u0645\u0633\u062A\u0646\u062F\u0627\u062A\\GitHub\\mawaeedak\\artifacts\\api-server\\dist";
+        const outputDir = "/workspace/project/mawaeedak/artifacts/api-server/dist";
         return path.resolve(outputDir, p.replace(/^\.\//, ""));
       } catch (e) {
         const f = new Function("p", "return new URL(p, import.meta.url).pathname");
@@ -57614,7 +57614,7 @@ function date5(params) {
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/external.js
 config(en_default2());
 
-// ../../node_modules/.pnpm/drizzle-zod@0.8.3_drizzle-o_388078da7d074fc4ad4cae0eacfc8b59/node_modules/drizzle-zod/index.mjs
+// ../../node_modules/.pnpm/drizzle-zod@0.8.3_drizzle-orm@0.45.2_@types+pg@8.20.0_pg@8.20.0__zod@3.25.76/node_modules/drizzle-zod/index.mjs
 var CONSTANTS = {
   INT8_MIN: -128,
   INT8_MAX: 127,
@@ -58671,7 +58671,7 @@ router9.get("/prayer-times", async (req, res) => {
   const today = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
   const dbRows = await db.select().from(prayerTimesTable).where(eq(prayerTimesTable.city_key, city));
   const dbRow = dbRows[0];
-  const times = dbRow ?? { ...DEFAULT_PRAYER[city] ?? DEFAULT_PRAYER["riyadh"], city_key: city };
+  const times = dbRow ?? { ...DEFAULT_PRAYER[city] ?? DEFAULT_PRAYER.riyadh, city_key: city };
   const { next_prayer, time_remaining } = getNextPrayer(times);
   return res.json({
     city,
