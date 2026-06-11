@@ -1,1 +1,0 @@
-import"./index-D4Ab7ohb.js";async function t(s,a){return{success:!1,error:"Supabase غير مهيأ"}}async function r(){return[]}async function u(s,a,e){return{success:!1,error:"Supabase غير مهيأ"}}async function c(s){return{success:!1,error:"Supabase غير مهيأ"}}export{t as c,c as d,r as g,u};
