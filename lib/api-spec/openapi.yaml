@@ -1031,6 +1031,8 @@ components:
         next_date: { type: string }
         amount: { type: ["number", "null"] }
         notes: { type: ["string", "null"] }
+        confirmed: { type: boolean }
+        source: { type: string }
         is_active: { type: boolean }
         reminder_days_before: { type: integer }
         created_at: { type: string }
@@ -1060,8 +1062,6 @@ components:
         source: { type: string }
         notes: { type: string }
         is_active: { type: boolean }
-        confirmed: { type: boolean }
-        source: { type: string }
         reminder_days_before: { type: integer }
 
     CountdownItem:
