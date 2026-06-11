@@ -1043,6 +1043,8 @@ components:
         type: { type: string }
         next_date: { type: string }
         amount: { type: number }
+        confirmed: { type: boolean }
+        source: { type: string }
         notes: { type: string }
         is_active: { type: boolean }
         reminder_days_before: { type: integer }
@@ -1054,8 +1056,12 @@ components:
         type: { type: string }
         next_date: { type: string }
         amount: { type: number }
+        confirmed: { type: boolean }
+        source: { type: string }
         notes: { type: string }
         is_active: { type: boolean }
+        confirmed: { type: boolean }
+        source: { type: string }
         reminder_days_before: { type: integer }
 
     CountdownItem:
