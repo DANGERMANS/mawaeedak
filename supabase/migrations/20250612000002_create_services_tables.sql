@@ -1,7 +1,32 @@
 -- Migration: Create goals, cost_projects, cost_items, reminders tables
--- Phase 16: Full Web/PWA Production System
+-- Phase 16: Full Web/PWA Production System (Fixed RLS)
 -- Date: 2026-06-12
--- Security: RLS enabled, users can only manage their own data
+-- Security: RLS enabled with proper admin role checks
+
+-- =============================================================================
+-- HELPER FUNCTION: Admin Role Check
+-- =============================================================================
+
+CREATE OR REPLACE FUNCTION public.has_admin_role()
+RETURNS BOOLEAN AS $$
+DECLARE
+    user_role TEXT;
+BEGIN
+    IF auth.uid() IS NULL THEN
+        RETURN FALSE;
+    END IF;
+    
+    SELECT up.role INTO user_role
+    FROM public.user_profiles up
+    WHERE up.user_id = auth.uid()
+    LIMIT 1;
+    
+    RETURN user_role IN ('admin', 'super_admin', 'owner');
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER STABLE;
+
+COMMENT ON FUNCTION public.has_admin_role() IS 
+'Check if the authenticated user has an admin role (admin, super_admin, or owner)';
 
 -- =============================================================================
 -- SECTION 1: GOALS TABLE
@@ -65,14 +90,15 @@ CREATE TABLE IF NOT EXISTS public.cost_items (
     project_id UUID NOT NULL REFERENCES public.cost_projects(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
-    amount NUMERIC(15, 2) NOT NULL DEFAULT 0,
-    paid_amount NUMERIC(15, 2) DEFAULT 0,
+    amount NUMERIC(15, 2) NOT NULL DEFAULT 0 CHECK (amount > 0),
+    paid_amount NUMERIC(15, 2) DEFAULT 0 CHECK (paid_amount >= 0),
     remaining_amount NUMERIC(15, 2) GENERATED ALWAYS AS (amount - paid_amount) STORED,
     status TEXT NOT NULL DEFAULT 'partial' CHECK (status IN ('partial', 'fully_paid', 'scheduled')),
     scheduled_date DATE,
     notes TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT check_paid_not_exceed_amount CHECK (paid_amount <= amount)
 );
 
 CREATE INDEX IF NOT EXISTS idx_cost_items_project_id ON public.cost_items(project_id);
@@ -98,7 +124,7 @@ CREATE TABLE IF NOT EXISTS public.reminders (
     date_type TEXT NOT NULL DEFAULT 'gregorian' CHECK (date_type IN ('hijri', 'gregorian')),
     reminder_date DATE NOT NULL,
     reminder_time TIME,
-    remind_before_value INTEGER DEFAULT 0,
+    remind_before_value INTEGER DEFAULT 0 CHECK (remind_before_value >= 0),
     remind_before_unit TEXT DEFAULT 'hours' CHECK (remind_before_unit IN ('minutes', 'hours', 'days')),
     note TEXT,
     is_active BOOLEAN DEFAULT TRUE,
@@ -143,22 +169,26 @@ CREATE INDEX IF NOT EXISTS idx_system_health_detected ON public.system_health_lo
 
 ALTER TABLE public.system_health_logs ENABLE ROW LEVEL SECURITY;
 
--- Everyone can read system health logs
-CREATE POLICY "Anyone can view system health logs"
+-- Admin-only read (for admin dashboard display)
+CREATE POLICY "Admins can view system health logs"
     ON public.system_health_logs FOR SELECT
-    USING (true);
+    USING (public.has_admin_role());
 
--- Only authenticated users can insert health logs
-CREATE POLICY "Users can insert system health logs"
+-- Only admins can insert health logs (internal monitoring)
+CREATE POLICY "Admins can insert system health logs"
     ON public.system_health_logs FOR INSERT
-    WITH CHECK (auth.uid() IS NOT NULL);
+    WITH CHECK (public.has_admin_role());
 
--- Admins can update/delete health logs
+-- Only admins can update/delete health logs
 CREATE POLICY "Admins can manage system health logs"
     ON public.system_health_logs FOR UPDATE
-    USING (auth.uid() IS NOT NULL);
+    USING (public.has_admin_role());
 
-COMMENT ON TABLE public.system_health_logs IS 'System health monitoring logs';
+CREATE POLICY "Admins can delete system health logs"
+    ON public.system_health_logs FOR DELETE
+    USING (public.has_admin_role());
+
+COMMENT ON TABLE public.system_health_logs IS 'System health monitoring logs (admin only)';
 
 -- =============================================================================
 -- SECTION 6: APP VERSIONS TABLE
@@ -181,7 +211,7 @@ CREATE INDEX IF NOT EXISTS idx_app_versions_published ON public.app_versions(pub
 
 ALTER TABLE public.app_versions ENABLE ROW LEVEL SECURITY;
 
--- Everyone can read app versions
+-- Public can read app versions (for PWA update check)
 CREATE POLICY "Anyone can view app versions"
     ON public.app_versions FOR SELECT
     USING (true);
@@ -189,7 +219,7 @@ CREATE POLICY "Anyone can view app versions"
 -- Only admins can insert/update app versions
 CREATE POLICY "Admins can manage app versions"
     ON public.app_versions FOR ALL
-    USING (auth.uid() IS NOT NULL);
+    USING (public.has_admin_role());
 
 COMMENT ON TABLE public.app_versions IS 'App version registry for update notifications';
 
@@ -217,17 +247,26 @@ CREATE INDEX IF NOT EXISTS idx_feature_health_detected ON public.feature_health_
 
 ALTER TABLE public.feature_health_logs ENABLE ROW LEVEL SECURITY;
 
--- Everyone can read feature health logs
-CREATE POLICY "Anyone can view feature health logs"
+-- Admin-only read (for admin dashboard)
+CREATE POLICY "Admins can view feature health logs"
     ON public.feature_health_logs FOR SELECT
-    USING (true);
+    USING (public.has_admin_role());
 
--- Authenticated users can insert health logs
-CREATE POLICY "Users can insert feature health logs"
+-- Only admins can insert health logs (internal monitoring)
+CREATE POLICY "Admins can insert feature health logs"
     ON public.feature_health_logs FOR INSERT
-    WITH CHECK (auth.uid() IS NOT NULL);
+    WITH CHECK (public.has_admin_role());
 
-COMMENT ON TABLE public.feature_health_logs IS 'Feature health monitoring logs';
+-- Only admins can update/delete health logs
+CREATE POLICY "Admins can manage feature health logs"
+    ON public.feature_health_logs FOR UPDATE
+    USING (public.has_admin_role());
+
+CREATE POLICY "Admins can delete feature health logs"
+    ON public.feature_health_logs FOR DELETE
+    USING (public.has_admin_role());
+
+COMMENT ON TABLE public.feature_health_logs IS 'Feature health monitoring logs (admin only)';
 
 -- =============================================================================
 -- TRIGGER FUNCTIONS
