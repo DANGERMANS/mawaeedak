@@ -1,13 +1,15 @@
 /**
  * goalsGateway.ts — Phase 16 Production Hardening
- * 
+ *
  * Unified data gateway for Goals.
  * - Supabase sync when user is logged in
- * - LocalStorage fallback for guests
- * 
+ * - LocalStorage fallback for guests only
+ * - Cloud failures are reported as failures, not silently converted to local success
+ *
  * Schema: supabase/migrations/20250612000002_create_services_tables.sql
  */
 
+import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase, isSupabaseEnabled } from "../supabase";
 import { isSupabaseMode } from "../dataSourceMode";
 
@@ -25,7 +27,6 @@ export type Goal = {
   completedAt: string | null;
 };
 
-// Supabase DB row type
 type GoalRow = {
   id: string;
   user_id: string;
@@ -33,7 +34,7 @@ type GoalRow = {
   type: GoalType;
   target_amount: number | null;
   requirements: string | null;
-  current_progress: number;
+  current_progress: number | null;
   deadline: string | null;
   completed_at: string | null;
   created_at: string;
@@ -41,305 +42,330 @@ type GoalRow = {
 
 const GOALS_STORAGE_KEY = "mawaeedak_goals_v1";
 
+type GoalsState = {
+  goals: Goal[];
+  isLoading: boolean;
+  isError: boolean;
+  isSynced: boolean;
+};
+
 function generateId(): string {
-  return `goal_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  return `goal_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 }
 
-// LocalStorage helpers
 function loadLocalGoals(): Goal[] {
+  if (typeof window === "undefined") return [];
+
   try {
     const stored = localStorage.getItem(GOALS_STORAGE_KEY);
-    if (stored) return JSON.parse(stored);
-  } catch { /* ignore */ }
-  return [];
+    if (!stored) return [];
+    const parsed = JSON.parse(stored);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
 }
 
 function saveLocalGoals(goals: Goal[]): void {
+  if (typeof window === "undefined") return;
+
   try {
     localStorage.setItem(GOALS_STORAGE_KEY, JSON.stringify(goals));
-  } catch { /* ignore */ }
+  } catch {
+    // localStorage can fail in private mode or storage quota limits.
+  }
 }
 
-// Convert Supabase row to Goal
 function toGoal(row: GoalRow): Goal {
   return {
     id: row.id,
     name: row.name,
     type: row.type,
     targetAmount: row.target_amount,
-    requirements: row.requirements || "",
-    currentProgress: row.current_progress || 0,
-    deadline: row.deadline || null,
+    requirements: row.requirements ?? "",
+    currentProgress: Number(row.current_progress ?? 0),
+    deadline: row.deadline,
     createdAt: row.created_at,
-    completedAt: row.completed_at || null,
+    completedAt: row.completed_at,
   };
 }
 
-// Convert Goal to Supabase row format
-function toGoalRow(goal: Goal, userId: string): Record<string, unknown> {
+function toGoalInsert(goal: Omit<Goal, "id" | "createdAt" | "completedAt">, userId: string): Record<string, unknown> {
   return {
-    id: goal.id.startsWith("goal_") ? undefined : goal.id,
     user_id: userId,
-    name: goal.name,
+    name: goal.name.trim(),
     type: goal.type,
     target_amount: goal.targetAmount,
-    requirements: goal.requirements || null,
+    requirements: goal.requirements?.trim() || null,
     current_progress: goal.currentProgress,
     deadline: goal.deadline || null,
-    completed_at: goal.completedAt || null,
+    completed_at: null,
   };
 }
 
-export interface GoalsGateway {
-  // State
-  goals: Goal[];
-  isLoading: boolean;
-  isError: boolean;
-  isSynced: boolean; // true = Supabase, false = localStorage
-  
-  // Operations
-  load(): Promise<void>;
-  add(goal: Omit<Goal, "id" | "createdAt" | "completedAt">): Promise<Goal | null>;
-  update(goal: Goal): Promise<boolean>;
-  delete(id: string): Promise<boolean>;
-  complete(id: string): Promise<boolean>;
-  updateProgress(id: string, progress: number): Promise<boolean>;
+function toGoalUpdate(goal: Goal): Record<string, unknown> {
+  return {
+    name: goal.name.trim(),
+    type: goal.type,
+    target_amount: goal.targetAmount,
+    requirements: goal.requirements?.trim() || null,
+    current_progress: goal.currentProgress,
+    deadline: goal.deadline || null,
+    completed_at: goal.completedAt,
+  };
 }
 
-export function createGoalsGateway(): GoalsGateway {
-  let goals: Goal[] = [];
-  let isLoading = true;
-  let isError = false;
-  let isSynced = false;
-  let currentUserId: string | null = null;
-  
-  const listeners: Set<() => void> = new Set();
-  
-  function notify() {
-    listeners.forEach(fn => fn());
+function assertValidGoalInput(goal: Omit<Goal, "id" | "createdAt" | "completedAt"> | Goal): void {
+  const name = goal.name.trim();
+  if (!name) throw new Error("الرجاء إدخال اسم الهدف");
+
+  if (goal.type === "financial") {
+    if (goal.targetAmount === null || !Number.isFinite(goal.targetAmount) || goal.targetAmount <= 0) {
+      throw new Error("المبلغ المستهدف يجب أن يكون أكبر من صفر");
+    }
   }
-  
-  async function load(): Promise<void> {
-    isLoading = true;
-    isError = false;
-    notify();
-    
+
+  if (!Number.isFinite(goal.currentProgress) || goal.currentProgress < 0) {
+    throw new Error("التقدم الحالي يجب أن يكون رقماً صحيحاً لا يقل عن صفر");
+  }
+}
+
+function assertValidProgress(progress: number): void {
+  if (!Number.isFinite(progress) || progress < 0) {
+    throw new Error("التقدم الحالي يجب أن يكون رقماً صحيحاً لا يقل عن صفر");
+  }
+}
+
+async function getCloudUserId(): Promise<string | null> {
+  if (!isSupabaseEnabled || !supabase || !isSupabaseMode) return null;
+
+  const { data, error } = await supabase.auth.getSession();
+  if (error) throw error;
+  return data.session?.user?.id ?? null;
+}
+
+export function useGoalsGateway() {
+  const userIdRef = useRef<string | null>(null);
+  const [state, setState] = useState<GoalsState>({
+    goals: [],
+    isLoading: true,
+    isError: false,
+    isSynced: false,
+  });
+
+  const setGoals = useCallback((updater: Goal[] | ((goals: Goal[]) => Goal[]), persistLocal: boolean) => {
+    setState((current) => {
+      const nextGoals = typeof updater === "function" ? updater(current.goals) : updater;
+      if (persistLocal) saveLocalGoals(nextGoals);
+      return { ...current, goals: nextGoals };
+    });
+  }, []);
+
+  const load = useCallback(async () => {
+    setState((current) => ({ ...current, isLoading: true, isError: false }));
+
     try {
-      if (isSupabaseEnabled && supabase && isSupabaseMode) {
-        const { data: sessionData } = await supabase.auth.getSession();
-        const userId = sessionData?.session?.user?.id;
-        
-        if (userId) {
-          currentUserId = userId;
-          const { data, error } = await supabase
-            .from("goals")
-            .select("*")
-            .eq("user_id", userId)
-            .order("created_at", { ascending: false });
-          
-          if (error) throw error;
-          
-          goals = (data || []).map(toGoal);
-          isSynced = true;
-          isLoading = false;
-          notify();
-          return;
-        }
+      const userId = await getCloudUserId();
+
+      if (userId && supabase) {
+        const { data, error } = await supabase
+          .from("goals")
+          .select("*")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
+
+        userIdRef.current = userId;
+        setState({
+          goals: (data ?? []).map((row) => toGoal(row as GoalRow)),
+          isLoading: false,
+          isError: false,
+          isSynced: true,
+        });
+        return;
       }
-      
-      // Fallback to localStorage
-      currentUserId = null;
-      goals = loadLocalGoals();
-      isSynced = false;
+
+      userIdRef.current = null;
+      setState({
+        goals: loadLocalGoals(),
+        isLoading: false,
+        isError: false,
+        isSynced: false,
+      });
     } catch (error) {
       console.error("[GoalsGateway] Load error:", error);
-      goals = loadLocalGoals();
-      isSynced = false;
-      isError = true;
+      userIdRef.current = null;
+      setState({
+        goals: [],
+        isLoading: false,
+        isError: true,
+        isSynced: false,
+      });
     }
-    
-    isLoading = false;
-    notify();
-  }
-  
-  async function add(goalData: Omit<Goal, "id" | "createdAt" | "completedAt">): Promise<Goal | null> {
-    const newGoal: Goal = {
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const add = useCallback(async (goalData: Omit<Goal, "id" | "createdAt" | "completedAt">): Promise<Goal | null> => {
+    assertValidGoalInput(goalData);
+
+    const userId = userIdRef.current;
+
+    if (state.isSynced) {
+      if (!userId || !supabase) {
+        throw new Error("تعذر حفظ الهدف في السحابة: جلسة المستخدم غير متاحة");
+      }
+
+      const { data, error } = await supabase
+        .from("goals")
+        .insert(toGoalInsert(goalData, userId))
+        .select("*")
+        .single();
+
+      if (error) {
+        console.error("[GoalsGateway] Add cloud error:", error);
+        setState((current) => ({ ...current, isError: true }));
+        throw new Error("فشل حفظ الهدف في السحابة");
+      }
+
+      const createdGoal = toGoal(data as GoalRow);
+      setGoals((goals) => [createdGoal, ...goals], false);
+      return createdGoal;
+    }
+
+    const localGoal: Goal = {
       ...goalData,
       id: generateId(),
+      name: goalData.name.trim(),
+      requirements: goalData.requirements?.trim() ?? "",
       createdAt: new Date().toISOString(),
       completedAt: null,
     };
-    
-    try {
-      if (isSynced && currentUserId && supabase) {
-        const row = toGoalRow(newGoal, currentUserId);
-        const { error } = await supabase.from("goals").insert(row);
-        
-        if (error) throw error;
+
+    setGoals((goals) => [localGoal, ...goals], true);
+    return localGoal;
+  }, [setGoals, state.isSynced]);
+
+  const update = useCallback(async (goal: Goal): Promise<boolean> => {
+    assertValidGoalInput(goal);
+
+    const userId = userIdRef.current;
+
+    if (state.isSynced) {
+      if (!userId || !supabase) {
+        throw new Error("تعذر تحديث الهدف في السحابة: جلسة المستخدم غير متاحة");
       }
-      
-      goals = [newGoal, ...goals];
-      saveLocalGoals(goals);
-      notify();
-      return newGoal;
-    } catch (error) {
-      console.error("[GoalsGateway] Add error:", error);
-      // Save locally anyway
-      goals = [newGoal, ...goals];
-      saveLocalGoals(goals);
-      notify();
-      return newGoal;
-    }
-  }
-  
-  async function update(goal: Goal): Promise<boolean> {
-    try {
-      if (isSynced && supabase) {
-        const { error } = await supabase
-          .from("goals")
-          .update({
-            name: goal.name,
-            type: goal.type,
-            target_amount: goal.targetAmount,
-            requirements: goal.requirements,
-            current_progress: goal.currentProgress,
-            deadline: goal.deadline,
-          })
-          .eq("id", goal.id);
-        
-        if (error) throw error;
+
+      const { error } = await supabase
+        .from("goals")
+        .update(toGoalUpdate(goal))
+        .eq("id", goal.id)
+        .eq("user_id", userId);
+
+      if (error) {
+        console.error("[GoalsGateway] Update cloud error:", error);
+        setState((current) => ({ ...current, isError: true }));
+        throw new Error("فشل تحديث الهدف في السحابة");
       }
-      
-      goals = goals.map(g => g.id === goal.id ? goal : g);
-      saveLocalGoals(goals);
-      notify();
+
+      setGoals((goals) => goals.map((item) => (item.id === goal.id ? goal : item)), false);
       return true;
-    } catch (error) {
-      console.error("[GoalsGateway] Update error:", error);
-      goals = goals.map(g => g.id === goal.id ? goal : g);
-      saveLocalGoals(goals);
-      notify();
-      return false;
     }
-  }
-  
-  async function deleteGoal(id: string): Promise<boolean> {
-    try {
-      if (isSynced && supabase) {
-        const { error } = await supabase.from("goals").delete().eq("id", id);
-        if (error) throw error;
+
+    setGoals((goals) => goals.map((item) => (item.id === goal.id ? goal : item)), true);
+    return true;
+  }, [setGoals, state.isSynced]);
+
+  const deleteGoal = useCallback(async (id: string): Promise<boolean> => {
+    const userId = userIdRef.current;
+
+    if (state.isSynced) {
+      if (!userId || !supabase) {
+        throw new Error("تعذر حذف الهدف من السحابة: جلسة المستخدم غير متاحة");
       }
-      
-      goals = goals.filter(g => g.id !== id);
-      saveLocalGoals(goals);
-      notify();
+
+      const { error } = await supabase
+        .from("goals")
+        .delete()
+        .eq("id", id)
+        .eq("user_id", userId);
+
+      if (error) {
+        console.error("[GoalsGateway] Delete cloud error:", error);
+        setState((current) => ({ ...current, isError: true }));
+        throw new Error("فشل حذف الهدف من السحابة");
+      }
+
+      setGoals((goals) => goals.filter((goal) => goal.id !== id), false);
       return true;
-    } catch (error) {
-      console.error("[GoalsGateway] Delete error:", error);
-      goals = goals.filter(g => g.id !== id);
-      saveLocalGoals(goals);
-      notify();
-      return false;
     }
-  }
-  
-  async function complete(id: string): Promise<boolean> {
+
+    setGoals((goals) => goals.filter((goal) => goal.id !== id), true);
+    return true;
+  }, [setGoals, state.isSynced]);
+
+  const complete = useCallback(async (id: string): Promise<boolean> => {
     const completedAt = new Date().toISOString();
-    
-    try {
-      if (isSynced && supabase) {
-        const { error } = await supabase
-          .from("goals")
-          .update({ completed_at: completedAt })
-          .eq("id", id);
-        
-        if (error) throw error;
-      }
-      
-      goals = goals.map(g => g.id === id ? { ...g, completedAt } : g);
-      saveLocalGoals(goals);
-      notify();
-      return true;
-    } catch (error) {
-      console.error("[GoalsGateway] Complete error:", error);
-      goals = goals.map(g => g.id === id ? { ...g, completedAt } : g);
-      saveLocalGoals(goals);
-      notify();
-      return false;
-    }
-  }
-  
-  async function updateProgress(id: string, progress: number): Promise<boolean> {
-    try {
-      if (isSynced && supabase) {
-        const { error } = await supabase
-          .from("goals")
-          .update({ current_progress: progress })
-          .eq("id", id);
-        
-        if (error) throw error;
-      }
-      
-      goals = goals.map(g => g.id === id ? { ...g, currentProgress: progress } : g);
-      saveLocalGoals(goals);
-      notify();
-      return true;
-    } catch (error) {
-      console.error("[GoalsGateway] Update progress error:", error);
-      goals = goals.map(g => g.id === id ? { ...g, currentProgress: progress } : g);
-      saveLocalGoals(goals);
-      notify();
-      return false;
-    }
-  }
-  
-  return {
-    get goals() { return goals; },
-    get isLoading() { return isLoading; },
-    get isError() { return isError; },
-    get isSynced() { return isSynced; },
-    load,
-    add,
-    update,
-    delete: deleteGoal,
-    complete,
-    updateProgress,
-  };
-}
+    const userId = userIdRef.current;
 
-// React hook for using the goals gateway
-import { useState, useEffect, useCallback, useRef } from "react";
+    if (state.isSynced) {
+      if (!userId || !supabase) {
+        throw new Error("تعذر إكمال الهدف في السحابة: جلسة المستخدم غير متاحة");
+      }
 
-export function useGoalsGateway() {
-  const gatewayRef = useRef(createGoalsGateway());
-  const [state, setState] = useState({
-    goals: gatewayRef.current.goals,
-    isLoading: gatewayRef.current.isLoading,
-    isError: gatewayRef.current.isError,
-    isSynced: gatewayRef.current.isSynced,
-  });
-  
-  useEffect(() => {
-    const update = () => {
-      setState({
-        goals: gatewayRef.current.goals,
-        isLoading: gatewayRef.current.isLoading,
-        isError: gatewayRef.current.isError,
-        isSynced: gatewayRef.current.isSynced,
-      });
-    };
-    
-    gatewayRef.current.load();
-    update();
-  }, []);
-  
-  const load = useCallback(() => gatewayRef.current.load(), []);
-  const add = useCallback((goal: Omit<Goal, "id" | "createdAt" | "completedAt">) => gatewayRef.current.add(goal), []);
-  const update = useCallback((goal: Goal) => gatewayRef.current.update(goal), []);
-  const deleteGoal = useCallback((id: string) => gatewayRef.current.delete(id), []);
-  const complete = useCallback((id: string) => gatewayRef.current.complete(id), []);
-  const updateProgress = useCallback((id: string, progress: number) => gatewayRef.current.updateProgress(id, progress), []);
-  
+      const { error } = await supabase
+        .from("goals")
+        .update({ completed_at: completedAt })
+        .eq("id", id)
+        .eq("user_id", userId);
+
+      if (error) {
+        console.error("[GoalsGateway] Complete cloud error:", error);
+        setState((current) => ({ ...current, isError: true }));
+        throw new Error("فشل إكمال الهدف في السحابة");
+      }
+
+      setGoals((goals) => goals.map((goal) => (goal.id === id ? { ...goal, completedAt } : goal)), false);
+      return true;
+    }
+
+    setGoals((goals) => goals.map((goal) => (goal.id === id ? { ...goal, completedAt } : goal)), true);
+    return true;
+  }, [setGoals, state.isSynced]);
+
+  const updateProgress = useCallback(async (id: string, progress: number): Promise<boolean> => {
+    assertValidProgress(progress);
+
+    const userId = userIdRef.current;
+
+    if (state.isSynced) {
+      if (!userId || !supabase) {
+        throw new Error("تعذر تحديث تقدم الهدف في السحابة: جلسة المستخدم غير متاحة");
+      }
+
+      const { error } = await supabase
+        .from("goals")
+        .update({ current_progress: progress })
+        .eq("id", id)
+        .eq("user_id", userId);
+
+      if (error) {
+        console.error("[GoalsGateway] Update progress cloud error:", error);
+        setState((current) => ({ ...current, isError: true }));
+        throw new Error("فشل تحديث تقدم الهدف في السحابة");
+      }
+
+      setGoals((goals) => goals.map((goal) => (goal.id === id ? { ...goal, currentProgress: progress } : goal)), false);
+      return true;
+    }
+
+    setGoals((goals) => goals.map((goal) => (goal.id === id ? { ...goal, currentProgress: progress } : goal)), true);
+    return true;
+  }, [setGoals, state.isSynced]);
+
   return {
     ...state,
     load,
