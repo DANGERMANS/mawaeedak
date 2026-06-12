@@ -12,7 +12,10 @@
  * - Add/edit/delete/save/list
  * - Empty/Error/Success states
  * 
- * NOTE: Currently stored locally. Backend integration pending Supabase schema and Push Notification setup.
+ * Storage: Local-first with optional Supabase cloud sync when logged in.
+ * Schema exists at: supabase/migrations/20250612000002_create_services_tables.sql
+ * UI shows "محفوظ على هذا الجهاز فقط" when not synced.
+ * Push notifications: Code ready, deployment setup required (VAPID keys + Edge Function).
  */
 
 import { useState, useMemo, useEffect } from "react";

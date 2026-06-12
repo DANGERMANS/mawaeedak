@@ -8,7 +8,9 @@
  * - Project buttons: add item, edit, delete, save, share, export, calendar event, clear all
  * - Item buttons: edit, delete, mark as paid, schedule
  * 
- * NOTE: Currently stored locally. Backend integration pending Supabase schema.
+ * Storage: Local-first with optional Supabase cloud sync when logged in.
+ * Schema exists at: supabase/migrations/20250612000002_create_services_tables.sql
+ * UI shows "محفوظ على هذا الجهاز فقط" when not synced.
  */
 
 import { useState, useMemo, useEffect } from "react";
