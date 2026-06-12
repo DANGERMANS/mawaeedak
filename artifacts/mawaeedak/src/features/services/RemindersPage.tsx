@@ -11,6 +11,8 @@
  * - Optional note
  * - Add/edit/delete/save/list
  * - Empty/Error/Success states
+ * 
+ * NOTE: Currently stored locally. Backend integration pending Supabase schema and Push Notification setup.
  */
 
 import { useState, useMemo, useEffect } from "react";
@@ -289,7 +291,7 @@ export default function RemindersPage() {
         }}>
           <Info className="w-5 h-5 shrink-0 mt-0.5" style={{ color: "#C9A063" }} />
           <p className="text-sm" style={{ color: "#6F6557" }}>
-            الإشعارات داخلية فقط في الوقت الحالي. ستظهر التذكيرات في صفحة الإشعارات.
+            محفوظ على هذا الجهاز فقط. الإشعارات الداخلية فقط حالياً. إعداد الإشعارات الفورية قيد التطوير.
           </p>
         </div>
         

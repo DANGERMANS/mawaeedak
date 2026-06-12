@@ -12,6 +12,8 @@
  * - Mark complete
  * - Validation
  * - Empty/Loading/Error/Success states
+ * 
+ * NOTE: Currently stored locally. Backend integration pending Supabase schema.
  */
 
 import { useState, useMemo, useEffect } from "react";
@@ -264,6 +266,11 @@ export default function GoalsPage() {
   return (
     <AppShell title="احسب هدفك" showBack>
       <div className="space-y-5 pb-6">
+        
+        {/* Local-only notice */}
+        <div className="rounded-xl border border-amber-200 bg-amber-50/50 px-4 py-2 text-xs" style={{ color: "#92400e" }}>
+          <span className="font-semibold">💾 ملاحظة:</span> محفوظ على هذا الجهاز فقط. المزامنة مع السحابة قادمة قريباً.
+        </div>
         
         {/* Add Button */}
         <div className="flex justify-center">
