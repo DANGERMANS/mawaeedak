@@ -235,6 +235,15 @@ npx web-push generate-vapid-keys
 | CI/build-and-test | ✅ PASS |
 | CI/Phase 4 Gate | ✅ PASS |
 
+### Security Checks
+| Check | Status |
+|-------|--------|
+| No package-lock.json | ✅ PASS |
+| No real VAPID private keys | ✅ PASS |
+| No Supabase service role keys | ✅ PASS |
+| No hardcoded prayer times | ✅ PASS |
+| No AlAdhan method=3 | ✅ PASS |
+
 ---
 
 ## Remaining Risks
@@ -270,21 +279,23 @@ The codebase is production-ready in terms of:
 - ✅ No Flutter/Dart/native mobile code
 - ✅ React/Vite/TypeScript architecture
 - ✅ Arabic RTL support
-- ✅ Mobile-first design
+- ✅ Mobile-first design (360px-430px)
 - ✅ PWA manifest and service worker
-- ✅ Supabase schema with RLS
-- ✅ Prayer engine with AlAdhan method=4
+- ✅ Supabase schema with strict RLS (has_admin_role helper)
+- ✅ Prayer engine with AlAdhan method=4 (no method=3)
 - ✅ No secrets committed
-- ✅ Production data mode safety
+- ✅ Production data mode safety (error mode)
 - ✅ Splash first-entry behavior
 - ✅ Deep links working
 - ✅ Error handling and monitoring
 - ✅ Feature registry and health logs
+- ✅ Goals have real Supabase sync for logged-in users
+- ✅ Costs/Reminders have schema with local fallback
 
-However, full production push notification delivery requires:
-- ⏳ VAPID keys configuration
-- ⏳ Edge Function deployment
-- ⏳ Scheduler/cron setup
+The following require deployment setup:
+- ⏳ Web Push: VAPID keys configuration, Edge Function deployment, Scheduler/cron
+- ⏳ Costs/Reminders: Full Supabase sync integration (schema exists, hook pending)
+- ⏳ Device testing: iOS Safari PWA, Android Chrome PWA installation
 
 ---
 
