@@ -65,23 +65,17 @@ export default function HomePage() {
 
   // Map prayer times: prefer official if available
   const prayers = useMemo(() => {
-    const times: Record<string, string> = {};
-    if (officialPrayer) {
-      times.fajr = officialPrayer.fajr_time;
-      times.sunrise = officialPrayer.sunrise_time;
-      times.dhuhr = officialPrayer.dhuhr_time;
-      times.asr = officialPrayer.asr_time;
-      times.maghrib = officialPrayer.maghrib_time;
-      times.isha = officialPrayer.isha_time;
-    } else {
-      // fallback values from gateway
-      times.fajr = fallbackPrayerData?.fajr ?? "04:03";
-      times.sunrise = fallbackPrayerData?.sunrise ?? "05:29";
-      times.dhuhr = fallbackPrayerData?.dhuhr ?? "12:18";
-      times.asr = fallbackPrayerData?.asr ?? "15:48";
-      times.maghrib = fallbackPrayerData?.maghrib ?? "18:49";
-      times.isha = fallbackPrayerData?.isha ?? "20:19";
+    if (!officialPrayer) {
+      return null; // No data - will show loading/empty state
     }
+    const times = {
+      fajr: officialPrayer.fajr_time,
+      sunrise: officialPrayer.sunrise_time,
+      dhuhr: officialPrayer.dhuhr_time,
+      asr: officialPrayer.asr_time,
+      maghrib: officialPrayer.maghrib_time,
+      isha: officialPrayer.isha_time,
+    };
     return [
       { key: "fajr", label: "الفجر", time: times.fajr },
       { key: "sunrise", label: "الشروق", time: times.sunrise },
@@ -90,7 +84,7 @@ export default function HomePage() {
       { key: "maghrib", label: "المغرب", time: times.maghrib },
       { key: "isha", label: "العشاء", time: times.isha },
     ];
-  }, [officialPrayer, fallbackPrayerData]);
+  }, [officialPrayer]);
 
   // Compute financial items: prefer official records
   const finance = useMemo(() => {
@@ -129,10 +123,20 @@ export default function HomePage() {
   } | null>(null);
   const [countdown, setCountdown] = useState<string>("");
 
+  // Compute next prayer and countdown - runs every second when prayers data changes
   useEffect(() => {
+    if (!prayers) {
+      setNextPrayer(null);
+      setCountdown("--:--:--");
+      return;
+    }
+    
+    // Capture prayers in a local const for the closure
+    const prayerList = prayers;
+    
     function computeNext() {
       const now = new Date();
-      const upcoming = prayers
+      const upcoming = prayerList
         .map((p) => {
           const date = createDateForToday(p.time, now);
           return date ? { prayer: p, date } : null;
@@ -141,7 +145,7 @@ export default function HomePage() {
 
       let next = upcoming.find((item) => item.date.getTime() > now.getTime());
       if (!next) {
-        const fajr = prayers.find((p) => p.key === "fajr") ?? prayers[0];
+        const fajr = prayerList.find((p) => p.key === "fajr") ?? prayerList[0];
         const fajrDate = createDateForToday(fajr?.time, now);
         if (!fajr || !fajrDate) {
           setNextPrayer(null);
@@ -203,38 +207,52 @@ export default function HomePage() {
             <h3 className="text-[22px] font-extrabold" style={{ color: BROWN }}>مواقيت الصلاة</h3>
             <Landmark className="h-6 w-6" style={{ color: GOLD }} />
           </div>
-          <div className="grid grid-cols-6 overflow-hidden rounded-[18px] border" style={{ borderColor: "rgba(201,160,99,0.18)" }}>
-            {prayers.map((prayer) => {
-              // Highlight the next upcoming prayer cell.
-              const active = nextPrayer && prayer.key === nextPrayer.key;
-              return (
-                <div
-                  key={prayer.key}
-                  className="flex min-h-[92px] flex-col items-center justify-center gap-2 border-l px-1 text-center last:border-l-0"
-                  style={{
-                    borderColor: "rgba(201,160,99,0.16)",
-                    background: active ? "#F3E8D6" : "rgba(255,255,255,0.62)",
-                    color: active ? BROWN : INK,
-                  }}
-                >
-                  <span style={{ color: GOLD }}><PrayerIcon keyName={prayer.key} /></span>
-                  <span className="text-[13px] font-extrabold">{prayer.label}</span>
-                  <span className="text-[14px] font-bold" dir="ltr">{formatTime(prayer.time)}</span>
-                </div>
-              );
-            })}
-          </div>
-          <div className="mt-3 flex items-center gap-3 rounded-[20px] border bg-[#FAF7F2] px-4 py-3" style={{ borderColor: "rgba(201,160,99,0.18)" }}>
-            <Landmark className="h-10 w-10 shrink-0" style={{ color: GOLD }} />
-            <p className="flex-1 text-center text-[18px] font-bold leading-8" style={{ color: BROWN }}>
-              الصلاة نور وراحة للقلب، فحافظ عليها في وقتها
-            </p>
-          </div>
-          <div className="mx-auto mt-3 flex w-fit items-center gap-2 rounded-full border bg-white px-4 py-2 text-sm font-bold" style={{ borderColor: "rgba(201,160,99,0.20)", color: INK }}>
-            <Clock3 className="h-4 w-4" style={{ color: GOLD }} />
-            {/* Display upcoming prayer label and live countdown; falls back to placeholders if unavailable. */}
-            الصلاة القادمة: {nextPrayer?.label ?? "—"} • متبقي {countdown || "--:--:--"}
-          </div>
+          
+          {!officialPrayer ? (
+            <div className="rounded-[18px] border bg-[#FFFCF7] p-5 text-center" style={{ borderColor: "rgba(201,160,99,0.18)" }}>
+              <Landmark className="mx-auto h-8 w-8 animate-pulse" style={{ color: GOLD }} />
+              <p className="mt-3 text-sm font-semibold" style={{ color: BROWN }}>
+                جاري تحميل مواقيت الصلاة...
+              </p>
+              <p className="mt-2 text-xs" style={{ color: "#8A7A6A" }}>
+                فعّل الموقع أو اختر المدينة لعرض المواقيت
+              </p>
+            </div>
+          ) : prayers && (
+            <>
+              <div className="grid grid-cols-6 overflow-hidden rounded-[18px] border" style={{ borderColor: "rgba(201,160,99,0.18)" }}>
+                {prayers.map((prayer) => {
+                  // Highlight the next upcoming prayer cell.
+                  const active = nextPrayer && prayer.key === nextPrayer.key;
+                  return (
+                    <div
+                      key={prayer.key}
+                      className="flex min-h-[92px] flex-col items-center justify-center gap-2 border-l px-1 text-center last:border-l-0"
+                      style={{
+                        borderColor: "rgba(201,160,99,0.16)",
+                        background: active ? "#F3E8D6" : "rgba(255,255,255,0.62)",
+                        color: active ? BROWN : INK,
+                      }}
+                    >
+                      <span style={{ color: GOLD }}><PrayerIcon keyName={prayer.key} /></span>
+                      <span className="text-[13px] font-extrabold">{prayer.label}</span>
+                      <span className="text-[14px] font-bold" dir="ltr">{formatTime(prayer.time)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="mt-3 flex items-center gap-3 rounded-[20px] border bg-[#FAF7F2] px-4 py-3" style={{ borderColor: "rgba(201,160,99,0.18)" }}>
+                <Landmark className="h-10 w-10 shrink-0" style={{ color: GOLD }} />
+                <p className="flex-1 text-center text-[18px] font-bold leading-8" style={{ color: BROWN }}>
+                  الصلاة نور وراحة للقلب، فحافظ عليها في وقتها
+                </p>
+              </div>
+              <div className="mx-auto mt-3 flex w-fit items-center gap-2 rounded-full border bg-white px-4 py-2 text-sm font-bold" style={{ borderColor: "rgba(201,160,99,0.20)", color: INK }}>
+                <Clock3 className="h-4 w-4" style={{ color: GOLD }} />
+                الصلاة القادمة: {nextPrayer?.label ?? "—"} • متبقي {countdown || "--:--:--"}
+              </div>
+            </>
+          )}
         </section>
 
         <section className="rounded-[26px] border bg-white/72 p-4" style={{ borderColor: "rgba(201,160,99,0.24)", boxShadow: "0 12px 30px rgba(138,107,61,0.10)" }}>
