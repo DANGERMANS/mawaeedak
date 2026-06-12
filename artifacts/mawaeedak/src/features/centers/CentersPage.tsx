@@ -1,13 +1,11 @@
 import { Link } from "wouter";
 import { AppShell } from "@/components/layout/AppShell";
 import {
-  Calculator, Bell, BookOpen, Briefcase, CalendarDays,
-  Gift, Headphones, MessageSquare, Newspaper, Plane, Target,
-  GraduationCap, Users, Clock, AlertCircle
+  Calculator, Bell, Briefcase, Gift, GraduationCap, MessageSquare, Plane, Target,
 } from "lucide-react";
 
-// Services in required order
-const services = [
+// Services in required order - only 8 visible services
+const visibleServices = [
   { title: "احسب هدفك", subtitle: "حدد هدفك وخطة التوفير", icon: Target, path: "/services/goals", status: "ready" },
   { title: "حساب التكاليف", subtitle: "قائمة البنود والمصروفات", icon: Calculator, path: "/services/costs", status: "ready" },
   { title: "ذكرني", subtitle: "تذكيرات ومواعيد", icon: Bell, path: "/services/reminders", status: "ready" },
@@ -16,11 +14,14 @@ const services = [
   { title: "الوظائف والأخبار", subtitle: "فرص وظيفية ومستجدات", icon: Briefcase, path: "/centers/jobs", status: "ready" },
   { title: "بطاقة اليوم", subtitle: "شارك يومك مع الآخرين", icon: Gift, path: "/daily-card", status: "ready" },
   { title: "صوتك مسموع", subtitle: "شكاوى واقتراحات", icon: MessageSquare, path: "/centers/complaints", status: "ready" },
-  { title: "نظم مواعيدك", subtitle: "أضف وأدر مواعيدك", icon: CalendarDays, path: "/calendar", status: "ready" },
-  { title: "الأذكار", subtitle: "أذكار الصباح والمساء", icon: BookOpen, path: "/centers/work", status: "coming_soon" },
-  { title: "قدم تهنئة", subtitle: "أرسل تهانيك بسهولة", icon: Gift, path: "/centers/greetings", status: "coming_soon" },
-  { title: "اتصل بنا", subtitle: "تواصل معنا", icon: Headphones, path: "/support", status: "ready" },
 ];
+
+// Additional services (hidden from main grid - accessible via direct navigation only)
+// These are commented out from the main services grid per spec requirements
+// - نظم مواعيدك → /calendar
+// - الأذكار → /centers/work (coming_soon)
+// - قدم تهنئة → /centers/greetings (coming_soon)
+// - اتصل بنا → /support
 
 // Coming Soon badge
 function ComingSoonBadge() {
@@ -41,7 +42,7 @@ export default function CentersPage() {
   return (
     <AppShell title="خدمات مواعيدك">
       <div className="grid grid-cols-2 gap-4">
-        {services.map((service) => {
+        {visibleServices.map((service) => {
           const Icon = service.icon;
           const isReady = service.status === "ready";
           
